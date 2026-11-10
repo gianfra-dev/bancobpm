@@ -117,6 +117,7 @@ paths=[]
 for s in summary:
     g=s['feat']['geometry'];polys=[g['coordinates']] if g['type']=='Polygon' else g['coordinates'];dstr=''
     for poly in polys:
+        if max(p[1] for p in poly[0])<36.4:continue  # Pelagie (Lampedusa, Linosa): nessuna filiale
         ring=[proj(p) for p in poly[0]]
         # scarta isolotti minuscoli
         xs=[p[0] for p in ring];ys=[p[1] for p in ring]
@@ -124,7 +125,7 @@ for s in summary:
         m=len(ring)//2;r=(dp(ring[:m+1],0.35)[:-1]+dp(ring[m:],0.35)) if len(ring)>=8 else ring
         dstr+='M'+'L'.join(f'{x},{y}' for x,y in r)+'Z'
     paths.append((s,dstr))
-W=math.ceil((18.8-X0)*K*S);H=math.ceil((Y0-35.4)*S)
+W=math.ceil((18.8-X0)*K*S);H=math.ceil((Y0-36.5)*S)
 svg=''.join(f'<a href="{s["slug"]}/" class="reg" data-n="{s["name"]}" data-b="{s["bpm"]}" data-c="{s["ca"]}" data-o="{s["both"]}"><title>{s["name"]}</title><path d="{ds}"/></a>' for s,ds in paths)
 rows=''.join(f'<a class="tile" href="{s["slug"]}/"><strong>{s["name"]}</strong><dl><div><dd class="g">{s["bpm"]}</dd>BPM</div><div><dd class="b">{s["ca"]}</dd>CA</div><div><dd class="y">{s["both"]}</dd>entrambe</div></dl></a>' for s in sorted(summary,key=lambda s:s['name']))
 tb=sum(s['bpm'] for s in summary);tc=sum(s['ca'] for s in summary);to=sum(s['both'] for s in summary)
