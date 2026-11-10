@@ -32,7 +32,7 @@ nav{display:flex;align-items:center;height:68px;border-bottom:1px solid var(--li
 nav img{height:40px;width:auto;border-radius:6px}
 @media(prefers-color-scheme:dark){nav img{background:#fff;padding:3px 6px}}
 .hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:center;padding:40px 0 56px;min-height:min(720px,calc(100dvh - 68px))}
-h1{font-size:clamp(34px,4.6vw,58px);line-height:1.02;letter-spacing:-.04em;font-weight:650;margin:0 0 20px;text-wrap:balance}
+h1{font-size:clamp(34px,4.6vw,58px);line-height:1.02;letter-spacing:-.04em;font-weight:650;margin:0 0 36px;text-wrap:balance}
 .lead{font-size:17px;color:var(--mute);max-width:42ch;margin:0 0 36px}
 .tot{display:grid;grid-template-columns:repeat(3,auto);gap:0;justify-content:start}
 .tot div{padding:0 28px;border-left:1px solid var(--line);font-size:13px;color:var(--mute);line-height:1.3}
@@ -81,12 +81,10 @@ footer{border-top:1px solid var(--line);padding:20px 0 28px;font-size:12px;color
 <div class="hero">
   <div>
     <h1>Dove Banco BPM e Crédit Agricole si sovrappongono</h1>
-    <p class="lead">Scegli una regione sulla mappa per vedere filiali, comuni in comune e sedi vicine.</p>
     <div class="tot"><div><b class="g">__TB__</b>filiali Banco BPM</div><div><b class="b">__TC__</b>filiali Crédit Agricole</div><div><b class="y">__TO__</b>comuni con entrambe</div></div>
   </div>
   <div class="mapbox">
     <svg viewBox="0 0 __W__ __H__" role="img" aria-label="Mappa schematica dell'Italia divisa per regioni">__SVG__</svg>
-    <div class="key"><span>Meno comuni sovrapposti</span><i></i><span>Più</span></div>
     <div id="tip"></div>
   </div>
 </div>
