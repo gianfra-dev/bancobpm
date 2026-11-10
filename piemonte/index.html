@@ -131,12 +131,12 @@ function refresh(){
   pairLayer.clearLayers();let pairs=0;
   if(R>0)bp.forEach(a=>ca.forEach(c=>{const d=hav(a,c);if(d<=R){pairs++;
     L.polyline([[a.lat,a.lon],[c.lat,c.lon]],{color:'#dc2626',weight:2.5,opacity:.9}).bindTooltip(`${a.nome} ↔ ${c.nome}: ${Math.round(d)} m`).addTo(pairLayer)}}));
-  const both=Object.values(counts).filter(c=>c.st==='both').length,tot=Object.values(counts).length;
+  const both=Object.values(counts).filter(c=>c.st==='both').length,tot=Object.values(counts).filter(c=>c.st!=='none').length;
   $('stats').innerHTML=`<div class=stat><b style="color:var(--bpm)">${bp.length}</b><span>filiali BPM</span></div><div class=stat><b style="color:var(--ca)">${ca.length}</b><span>filiali CA</span></div><div class=stat><b style="color:#ca8a04">${both}</b><span>comuni con entrambe (su ${tot})</span></div><div class=stat><b style="color:#dc2626">${pairs}</b><span>coppie entro ${R} m</span></div>`;
   renderTable();showInfo($('selProv').value);
 }
 function visible(){const p=$('selProv').value,q=$('q').value.trim().toLowerCase();
-  return Object.values(counts).filter(c=>(!p||c.p===p)&&(!q||c.n.toLowerCase().includes(q))&&(view==='all'?true:c.st===view))}
+  return Object.values(counts).filter(c=>c.st!=='none'&&(!p||c.p===p)&&(!q||c.n.toLowerCase().includes(q))&&(view==='all'?true:c.st===view))}
 const ST={both:'Sovrapp.',bpm:'Solo BPM',ca:'Solo CA',none:'—'};
 const pn=p=>PROVN[p]||p;
 function renderTable(){
@@ -169,8 +169,8 @@ info.onAdd=()=>{const d=L.DomUtil.create('div','pinfo');L.DomEvent.disableClickP
   d.addEventListener('click',e=>{if(e.target.closest('.x')){$('selProv').value='';renderTable();showInfo('');map.fitBounds(FULL);return}const a=e.target.closest('a[data-n]');if(a)selectComune(a.dataset.n)});return d};
 info.addTo(map);
 function showInfo(p){const d=info.getContainer();if(!p){d.style.display='none';return}
-  const rows=Object.values(counts).filter(c=>c.p===p),b=rows.reduce((s,r)=>s+r.b,0),c=rows.reduce((s,r)=>s+r.c,0),ov=rows.filter(r=>r.st==='both').sort((x,y)=>(y.b+y.c)-(x.b+x.c));
-  d.innerHTML=`<button class="x" aria-label="Chiudi">×</button><div class="t">Provincia di ${esc(pn(p))}</div><div><span style="color:var(--bpm)">BPM ${b}</span> · <span style="color:var(--ca)">CA ${c}</span> · ${rows.length} comuni</div><div style="margin:6px 0 2px"><b>Comuni con entrambe: ${ov.length}</b></div>${ov.map(r=>`<a data-n="${esc(r.n)}">${esc(r.n)} <span style="color:#667085">(BPM ${r.b} · CA ${r.c})</span></a>`).join('')||'<div style="color:#667085">Nessuna sovrapposizione</div>'}`;
+  const rows=Object.values(counts).filter(c=>c.p===p&&c.st!=='none'),b=rows.reduce((s,r)=>s+r.b,0),c=rows.reduce((s,r)=>s+r.c,0),ov=rows.filter(r=>r.st==='both').sort((x,y)=>(y.b+y.c)-(x.b+x.c));
+  d.innerHTML=`<button class="x" aria-label="Chiudi">×</button><div class="t">Provincia di ${esc(pn(p))}</div><div><span style="color:var(--bpm)">BPM ${b}</span> · <span style="color:var(--ca)">CA ${c}</span> · ${rows.length} comuni con filiali</div><div style="margin:6px 0 2px"><b>Comuni con entrambe: ${ov.length}</b></div>${ov.map(r=>`<a data-n="${esc(r.n)}">${esc(r.n)} <span style="color:#667085">(BPM ${r.b} · CA ${r.c})</span></a>`).join('')||'<div style="color:#667085">Nessuna sovrapposizione</div>'}`;
   d.style.display='block'}
 function selectProvince(p){$('selProv').value=p;renderTable();const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));if(ls.length)map.fitBounds(L.featureGroup(ls).getBounds(),{padding:[20,20]});showInfo(p)}
 function focusMap(){if(innerWidth>820)return;const r=$('map').getBoundingClientRect();if(r.top<0||r.top>120)window.scrollTo({top:scrollY+r.top,behavior:'smooth'})}
