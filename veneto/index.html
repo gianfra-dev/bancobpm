@@ -3,58 +3,113 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Filiali Veneto – Banco BPM vs Crédit Agricole · FISAC</title>
+<title>Filiali Veneto: Banco BPM e Crédit Agricole | FISAC</title>
 <link rel="icon" href="../assets/fisac-logo.png">
+<link rel="preload" href="../assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-:root{--bpm:#16a34a;--ca:#2563eb;--both:#facc15;--bg:#f6f7f9;--ink:#1c2230;--mute:#667085;--line:#e3e6ec}
+@font-face{font-family:Geist;src:url(../assets/fonts/geist-latin-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215}
+@font-face{font-family:Geist;src:url(../assets/fonts/geist-latin-ext-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Geist Mono";src:url(../assets/fonts/geist-mono-latin-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap}
+:root{
+  --red:#c8102e;--red-ink:#a30d25;
+  --bpm:#16a34a;--ca:#2563eb;--both:#facc15;
+  --bpm-ink:#15803d;--ca-ink:#1d4ed8;--both-ink:#854d0e;
+  --bg:#fafafa;--surface:#fff;--ink:#18181b;--mute:#52525b;--line:#e4e4e7;--hover:rgba(24,24,27,.045);
+  --side:linear-gradient(180deg,#fff 0%,#fff6f6 55%,#fde6e6 100%);
+  --sel:#fef3c7;--provrow:rgba(200,16,46,.08);--none:#e5e7eb;
+  --r:8px;--r-lg:12px;
+  --shadow:0 1px 2px rgba(60,20,20,.08),0 8px 24px -8px rgba(60,20,20,.22);
+  --sans:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+@media(prefers-color-scheme:dark){:root{
+  --red:#ef4466;--red-ink:#ff8aa0;
+  --bpm-ink:#4ade80;--ca-ink:#7aa7ff;--both-ink:#fcd34d;
+  --bg:#111113;--surface:#1b1b1f;--ink:#ececef;--mute:#a1a1aa;--line:#2e2e34;--hover:rgba(255,255,255,.06);
+  --side:linear-gradient(180deg,#18181b 0%,#1f1618 60%,#2b161b 100%);
+  --sel:#3a3012;--provrow:rgba(239,68,102,.14);--none:#3f3f46;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -8px rgba(0,0,0,.6);
+}}
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
-#app{display:grid;grid-template-columns:400px 1fr;height:100%}
-aside{background:linear-gradient(180deg,#fff 0%,#ffe9e9 55%,#fbbcbc 100%);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-.head{padding:12px 16px 10px;border-bottom:1px solid var(--line)}
-.back{display:flex;align-items:center;gap:10px;text-decoration:none;color:#b3001b;font-size:12px;font-weight:600;margin-bottom:8px}
-.back img{height:30px;width:auto}
-h1{font-size:17px;margin:0 0 2px}
-.sub{color:var(--mute);font-size:12px}
-.ctrl{padding:10px 16px;border-bottom:1px solid var(--line);display:grid;gap:8px}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-label{display:flex;gap:5px;align-items:center;cursor:pointer}
-select,input[type=search]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);min-width:0}
+html,body{height:100%;margin:0;font:14px/1.45 var(--sans);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+#app{display:grid;grid-template-columns:420px 1fr;height:100%}
+aside{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.head{padding:16px 20px 14px;border-bottom:1px solid var(--line)}
+.back{display:inline-flex;align-items:center;gap:12px;text-decoration:none;color:var(--red-ink);font-size:13px;font-weight:550;margin-bottom:12px;border-radius:var(--r)}
+.back img{height:30px;width:auto;border-radius:6px}
+@media(prefers-color-scheme:dark){.back img{background:#fff;padding:2px 5px}}
+.back span{transition:transform .25s var(--ease)}
+.back:hover span{transform:translateX(-3px)}
+h1{font-size:20px;line-height:1.2;letter-spacing:-.02em;font-weight:650;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--mute);font-size:12px;max-width:52ch}
+.ctrl{padding:14px 20px;border-bottom:1px solid var(--line);display:grid;gap:10px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+label{display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px}
+input[type=checkbox]{accent-color:var(--red);width:15px;height:15px;margin:0}
+select,input[type=search]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--ink);min-width:0;transition:border-color .2s}
+select:hover,input[type=search]:hover{border-color:var(--mute)}
 input[type=search]{flex:1}
-input[type=range]{flex:1}
+input[type=search]::placeholder{color:var(--mute)}
+input[type=range]{flex:1;accent-color:var(--red)}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px 16px;border-bottom:1px solid var(--line)}
-.stat{background:rgba(255,255,255,.7);border-radius:8px;padding:6px 8px}
-.stat b{font-size:18px;display:block}
-.stat span{font-size:11px;color:var(--mute)}
-.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.seg button{flex:1;border:0;background:#fff;padding:6px 4px;font:inherit;font-size:12px;cursor:pointer;color:var(--ink);border-right:1px solid var(--line)}
-.seg button:last-child{border:0}
-.seg button.on{background:var(--ink);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);padding:14px 20px;border-bottom:1px solid var(--line);gap:0}
+.stat{padding:0 10px;border-left:1px solid var(--line)}
+.stat:first-child{padding-left:0;border:0}
+.stat b{font-size:26px;line-height:1.1;letter-spacing:-.03em;font-weight:650;display:block;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;line-height:1.3;color:var(--mute);display:block;margin-top:2px}
+.c-bpm{color:var(--bpm-ink)}.c-ca{color:var(--ca-ink)}.c-both{color:var(--both-ink)}.c-pair{color:var(--red-ink)}
+.seg{display:flex;padding:3px;gap:2px;background:var(--hover);border-radius:var(--r)}
+.seg button{flex:1;border:0;background:transparent;padding:7px 4px;font:inherit;font-size:12px;font-weight:500;cursor:pointer;color:var(--mute);border-radius:6px;transition:background .2s,color .2s,transform .15s}
+.seg button:hover{color:var(--ink)}
+.seg button:active{transform:scale(.97)}
+.seg button.on{background:var(--ink);color:var(--bg)}
 .tablewrap{flex:1;overflow:auto;min-height:0}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{position:sticky;top:0;background:#fff3f3;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);cursor:pointer;font-size:12px;color:var(--mute);white-space:nowrap}
-td{padding:5px 8px;border-bottom:1px solid rgba(180,60,60,.12)}
-td.n,th.n{text-align:right}
-tr.c:hover{background:rgba(255,255,255,.7);cursor:pointer}
-tr.prov td{background:rgba(220,38,38,.12);font-weight:600}
-tr.sel td{background:#fff6d6}
-.tag{display:inline-block;padding:1px 6px;border-radius:9px;font-size:11px;color:#fff}
-.tag.both{background:var(--both);color:#422006}.tag.bpm{background:var(--bpm)}.tag.ca{background:var(--ca)}
-button.act{border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 10px;font:inherit;cursor:pointer}
-#map{height:100%;min-height:0;background:#ddd}
-.legend{background:#fff;padding:8px 10px;border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,.25);line-height:1.7;font-size:12px}
-.legend i{width:14px;height:14px;display:inline-block;vertical-align:-2px;margin-right:6px;border-radius:3px;opacity:.85}
+th{position:sticky;top:0;background:var(--surface);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--mute);white-space:nowrap;user-select:none}
+th:hover{color:var(--ink)}
+td{padding:7px 10px}
+tr.c td{border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.c{cursor:pointer;transition:background .15s}
+tr.c:hover{background:var(--hover)}
+tr.prov td{background:var(--provrow);font-weight:600}
+tr.sel td{background:var(--sel)}
+.tag{display:inline-block;white-space:nowrap;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:550;color:#fff}
+.tag.both{background:var(--both);color:#422006}.tag.bpm{background:var(--bpm-ink);color:#fff}.tag.ca{background:var(--ca-ink);color:#fff}
+@media(prefers-color-scheme:dark){.tag.bpm,.tag.ca{color:#0b0b0d}}
+button.act{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r);padding:7px 12px;font:inherit;font-weight:500;cursor:pointer;transition:border-color .2s,transform .15s}
+button.act:hover{border-color:var(--mute)}
+button.act:active{transform:scale(.97)}
+#map{height:100%;min-height:0;background:#e5e7eb}
+.legend{background:var(--surface);color:var(--ink);padding:10px 12px;border-radius:var(--r-lg);box-shadow:var(--shadow);line-height:1.8;font-size:12px}
+.legend i{width:14px;height:14px;display:inline-block;vertical-align:-2px;margin-right:6px;border-radius:4px;opacity:.9}
+.legend hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.leaflet-popup-content-wrapper{border-radius:var(--r-lg);box-shadow:var(--shadow);background:var(--surface);color:var(--ink)}
+.leaflet-popup-tip{background:var(--surface)}
+.leaflet-popup-content{font-family:var(--sans)}
 .pop b{font-size:13px}
-.pop .m{color:#667085;font-size:12px}
-.foot{padding:8px 16px;font-size:11px;color:var(--mute);border-top:1px solid var(--line)}
-.pinfo{background:#fff;padding:10px 12px;border-radius:8px;box-shadow:0 1px 8px rgba(0,0,0,.3);width:min(260px,72vw);max-height:42vh;overflow:auto;font-size:13px;line-height:1.45}
-.pinfo .x{float:right;border:0;background:none;font-size:22px;line-height:1;cursor:pointer;padding:0 2px;color:#666}
-.pinfo .t{font-size:14px;font-weight:700}
-.pinfo a{display:block;padding:5px 0;color:#1d4ed8;cursor:pointer;border-top:1px solid #eee}
-@media(max-width:820px){#app{grid-template-columns:1fr;grid-template-rows:60vh auto;height:auto;min-height:100%}#map{order:-1;height:60vh}aside{border:0;overflow:visible}.tablewrap{flex:none;max-height:65vh}.legend{font-size:11px;padding:5px 8px;line-height:1.5}}
+.pop .m{color:var(--mute);font-size:12px}
+.foot{padding:12px 20px;font-size:11px;line-height:1.5;color:var(--mute);border-top:1px solid var(--line)}
+.pinfo{background:var(--surface);color:var(--ink);padding:14px;border-radius:var(--r-lg);box-shadow:var(--shadow);width:min(280px,72vw);max-height:42vh;overflow:auto;font-size:13px;line-height:1.45}
+.pinfo .x{float:right;border:0;background:none;font-size:22px;line-height:1;cursor:pointer;padding:0 2px;color:var(--mute);border-radius:6px}
+.pinfo .x:hover{color:var(--ink)}
+.pinfo .t{font-size:15px;font-weight:650;letter-spacing:-.01em}
+.pinfo a{display:block;padding:7px 0;color:var(--ink);cursor:pointer;border-top:1px solid var(--line);transition:color .15s}
+.pinfo a:hover{color:var(--red-ink)}
+@media(max-width:820px){
+  #app{grid-template-columns:1fr;grid-template-rows:60vh auto;height:auto;min-height:100%}
+  #map{order:-1;height:60vh}
+  aside{border:0;overflow:visible}
+  .tablewrap{flex:none;max-height:65vh}
+  .legend{font-size:11px;padding:6px 9px;line-height:1.55}
+  .stat b{font-size:22px}
+  .head,.ctrl,.stats,.foot{padding-left:16px;padding-right:16px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
@@ -62,8 +117,8 @@ button.act{border:1px solid var(--line);background:#fff;border-radius:6px;paddin
 <aside>
   <div class="head">
     <a class="back" href="../"><img src="../assets/fisac-logo.png" alt="FISAC"><span>← Tutte le regioni</span></a>
-    <h1>Filiali in Veneto: Banco BPM vs Crédit Agricole</h1>
-    <div class="sub">Dati dai locator ufficiali di bancobpm.it e credit-agricole.it · rilevati il 10/11/2026</div>
+    <h1>Veneto: Banco BPM e Crédit Agricole</h1>
+    <div class="sub">Filiali dai locator ufficiali di bancobpm.it e credit-agricole.it, rilevate il 10/11/2026.</div>
   </div>
   <div class="ctrl">
     <div class="row">
@@ -72,26 +127,26 @@ button.act{border:1px solid var(--line);background:#fff;border-radius:6px;paddin
       <label title="Esclude centri imprese/corporate, mercato private, consulenti finanziari"><input type="checkbox" id="cSpec">Solo filiali retail</label>
     </div>
     <div class="row">
-      <select id="selProv"><option value="">Tutte le province</option></select>
-      <input type="search" id="q" placeholder="Cerca comune…">
+      <select id="selProv" aria-label="Provincia"><option value="">Tutte le province</option></select>
+      <input type="search" id="q" placeholder="Cerca comune" aria-label="Cerca comune">
     </div>
     <div class="seg" id="seg">
-      <button data-v="all" class="on">Tutti i comuni</button>
+      <button data-v="all" class="on">Tutti</button>
       <button data-v="both">Sovrapposti</button>
       <button data-v="bpm">Solo BPM</button>
       <button data-v="ca">Solo CA</button>
     </div>
     <div class="row">
-      <span style="white-space:nowrap">Prossimità: <b id="rv">500</b> m</span>
-      <input type="range" id="rad" min="0" max="3000" step="50" value="500">
-      <button class="act" id="csv" title="Esporta la tabella dei comuni">CSV</button>
+      <span style="white-space:nowrap">Prossimità <b id="rv" style="font-family:var(--mono);font-weight:600">500</b> m</span>
+      <input type="range" id="rad" min="0" max="3000" step="50" value="500" aria-label="Raggio di prossimità in metri">
+      <button class="act" id="csv" title="Esporta la tabella dei comuni">Esporta CSV</button>
     </div>
   </div>
   <div class="stats" id="stats"></div>
   <div class="tablewrap"><table id="tbl"><thead><tr>
-    <th data-s="n">Comune</th><th data-s="p">Pr.</th><th class="n" data-s="b" style="color:var(--bpm)">BPM</th><th class="n" data-s="c" style="color:var(--ca)">CA</th><th data-s="st">Stato</th>
+    <th data-s="n">Comune</th><th data-s="p">Pr.</th><th class="n c-bpm" data-s="b">BPM</th><th class="n c-ca" data-s="c">CA</th><th data-s="st">Stato</th>
   </tr></thead><tbody></tbody></table></div>
-  <div class="foot">Colore comune: <span style="color:#ca8a04">■</span> sovrapposto (giallo) · <span style="color:var(--bpm)">■</span> solo BPM · <span style="color:var(--ca)">■</span> solo CA · grigio = nessuna filiale. Linee rosse: coppie BPM–CA entro il raggio di prossimità. Confini: openpolis/geojson-italy (ISTAT).</div>
+  <div class="foot">Giallo: comune con entrambe le banche. Verde: solo BPM. Blu: solo CA. Le linee rosse uniscono filiali BPM e CA entro il raggio di prossimità. Confini ISTAT da openpolis/geojson-italy.</div>
 </aside>
 <div id="map"></div>
 </div>
@@ -112,12 +167,12 @@ const comByName={};comLayer.eachLayer(l=>comByName[l.feature.properties.n]=l);
 L.geoJSON(D.prov,{style:{weight:2.2,color:'#334155',fill:false},interactive:false}).addTo(map);
 const brLayer=L.layerGroup().addTo(map),pairLayer=L.layerGroup().addTo(map);
 const legend=L.control({position:'bottomright'});
-legend.onAdd=()=>{const d=L.DomUtil.create('div','legend');d.innerHTML=`<div><span class=dot style="background:${COL.bpm}"></span> Banco BPM</div><div><span class=dot style="background:${COL.ca}"></span> Crédit Agricole</div><div><span style="display:inline-block;width:18px;border-top:2px solid #dc2626;vertical-align:middle;margin-right:6px"></span>Coppia vicina</div><div style="margin-top:4px"><i style="background:${COL.both}"></i>Comune sovrapposto<br><i style="background:${COL.bpm}"></i>Solo BPM<br><i style="background:${COL.ca}"></i>Solo CA<br><i style="background:${COL.none}"></i>Nessuna</div>`;return d};
+legend.onAdd=()=>{const d=L.DomUtil.create('div','legend');d.innerHTML=`<div><span class=dot style="background:${COL.bpm}"></span> Banco BPM</div><div><span class=dot style="background:${COL.ca}"></span> Crédit Agricole</div><div><span style="display:inline-block;width:18px;border-top:2px solid #dc2626;vertical-align:middle;margin-right:6px"></span>Coppia vicina</div><hr><i style="background:${COL.both}"></i>Comune sovrapposto<br><i style="background:${COL.bpm}"></i>Solo BPM<br><i style="background:${COL.ca}"></i>Solo CA<br><i style="background:${COL.none}"></i>Nessuna`;return d};
 legend.addTo(map);
 Object.entries(PROVN).sort((a,b)=>a[1].localeCompare(b[1])).forEach(([k,v])=>$('selProv').insertAdjacentHTML('beforeend',`<option value="${k}">${v}</option>`));
 const hav=(a,b)=>{const R=6371000,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lon-a.lon)*r,x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
 function active(){return D.br.filter(b=>(b.b==='BPM'?$('cBpm').checked:$('cCa').checked)&&!($('cSpec').checked&&b.spec))}
-function popup(b){return `<div class=pop><b>${esc(b.nome)}</b><div class=m>${b.b==='BPM'?'Banco BPM':'Crédit Agricole'} · ${esc(b.marchio)}</div>${esc(b.ind)}${b.cap?' – '+esc(b.cap):''}<br>${esc(b.com)} (${b.prov})<div class=m>${esc(b.tip)} · cod. ${esc(b.cod)}${b.tel?' · tel. '+esc(b.tel):''}</div></div>`}
+function popup(b){return `<div class=pop><b>${esc(b.nome)}</b><div class=m>${b.b==='BPM'?'Banco BPM':'Crédit Agricole'}, ${esc(b.marchio)}</div>${esc(b.ind)}${b.cap?' - '+esc(b.cap):''}<br>${esc(b.com)} (${b.prov})<div class=m>${esc(b.tip)}, cod. ${esc(b.cod)}${b.tel?', tel. '+esc(b.tel):''}</div></div>`}
 function refresh(){
   const act=active(),R=+$('rad').value;$('rv').textContent=R;
   counts={};
@@ -132,12 +187,12 @@ function refresh(){
   if(R>0)bp.forEach(a=>ca.forEach(c=>{const d=hav(a,c);if(d<=R){pairs++;
     L.polyline([[a.lat,a.lon],[c.lat,c.lon]],{color:'#dc2626',weight:2.5,opacity:.9}).bindTooltip(`${a.nome} ↔ ${c.nome}: ${Math.round(d)} m`).addTo(pairLayer)}}));
   const both=Object.values(counts).filter(c=>c.st==='both').length,tot=Object.values(counts).filter(c=>c.st!=='none').length;
-  $('stats').innerHTML=`<div class=stat><b style="color:var(--bpm)">${bp.length}</b><span>filiali BPM</span></div><div class=stat><b style="color:var(--ca)">${ca.length}</b><span>filiali CA</span></div><div class=stat><b style="color:#ca8a04">${both}</b><span>comuni con entrambe (su ${tot})</span></div><div class=stat><b style="color:#dc2626">${pairs}</b><span>coppie entro ${R} m</span></div>`;
+  $('stats').innerHTML=`<div class=stat><b class=c-bpm>${bp.length}</b><span>filiali BPM</span></div><div class=stat><b class=c-ca>${ca.length}</b><span>filiali CA</span></div><div class=stat><b class=c-both>${both}</b><span>comuni con entrambe (su ${tot})</span></div><div class=stat><b class=c-pair>${pairs}</b><span>coppie entro ${R} m</span></div>`;
   renderTable();showInfo($('selProv').value);
 }
 function visible(){const p=$('selProv').value,q=$('q').value.trim().toLowerCase();
   return Object.values(counts).filter(c=>c.st!=='none'&&(!p||c.p===p)&&(!q||c.n.toLowerCase().includes(q))&&(view==='all'?true:c.st===view))}
-const ST={both:'Sovrapp.',bpm:'Solo BPM',ca:'Solo CA',none:'—'};
+const ST={both:'Sovrapp.',bpm:'Solo BPM',ca:'Solo CA',none:'-'};
 const pn=p=>PROVN[p]||p;
 function renderTable(){
   let rows=visible();
@@ -146,14 +201,14 @@ function renderTable(){
   let h='';
   if(sortKey==='p'){let cur='';rows.forEach(c=>{if(c.p!==cur){cur=c.p;const g=rows.filter(r=>r.p===cur);h+=`<tr class=prov><td colspan=2>${esc(pn(cur))} (${g.length} comuni, ${g.filter(r=>r.st==='both').length} sovrapposti)</td><td class=n>${g.reduce((s,r)=>s+r.b,0)}</td><td class=n>${g.reduce((s,r)=>s+r.c,0)}</td><td></td></tr>`}h+=row(c)})}
   else rows.forEach(c=>h+=row(c));
-  document.querySelector('#tbl tbody').innerHTML=h||'<tr><td colspan=5 style="padding:16px;color:var(--mute)">Nessun comune con questi filtri.</td></tr>';
+  document.querySelector('#tbl tbody').innerHTML=h||'<tr><td colspan=5 style="padding:24px 10px;color:var(--mute)">Nessun comune corrisponde ai filtri. Prova a togliere la ricerca o a scegliere "Tutti".</td></tr>';
   const vis=new Set(rows.map(r=>r.n));
   comLayer.eachLayer(l=>{const n=l.feature.properties.n,c=counts[n];l.setStyle({fillColor:COL[c.st],fillOpacity:vis.has(n)?opOf(c.st):.03})});
 }
-function row(c){return `<tr class="c${selected===c.n?' sel':''}" data-n="${esc(c.n)}"><td>${esc(c.n)}</td><td>${c.p}</td><td class=n>${c.b||''}</td><td class=n>${c.c||''}</td><td>${c.st==='none'?'—':`<span class="tag ${c.st}">${ST[c.st]}</span>`}</td></tr>`}
+function row(c){return `<tr class="c${selected===c.n?' sel':''}" data-n="${esc(c.n)}"><td>${esc(c.n)}</td><td>${c.p}</td><td class=n>${c.b||''}</td><td class=n>${c.c||''}</td><td>${c.st==='none'?'-':`<span class="tag ${c.st}">${ST[c.st]}</span>`}</td></tr>`}
 function selectComune(n){selected=n;const l=comByName[n];if(!l)return;map.fitBounds(l.getBounds(),{maxZoom:13,padding:[30,30]});
   const c=counts[n],bs=active().filter(b=>b.com===n);
-  l.bindPopup(`<div class=pop><b>${esc(n)} (${c.p})</b><div class=m>BPM: ${c.b} · CA: ${c.c}</div>${bs.map(b=>`<div style="color:${b.b==='BPM'?COL.bpm:COL.ca}">● ${esc(b.nome)} <span class=m>– ${esc(b.ind)}</span></div>`).join('')}</div>`,{maxWidth:340}).openPopup(l.getBounds().getCenter());
+  l.bindPopup(`<div class=pop><b>${esc(n)} (${c.p})</b><div class=m>BPM: ${c.b}, CA: ${c.c}</div>${bs.map(b=>`<div style="color:${b.b==='BPM'?COL.bpm:COL.ca}">● ${esc(b.nome)} <span class=m>(${esc(b.ind)})</span></div>`).join('')}</div>`,{maxWidth:340}).openPopup(l.getBounds().getCenter());
   renderTable()}
 document.querySelector('#tbl tbody').addEventListener('click',e=>{const tr=e.target.closest('tr.c');if(tr){selectComune(tr.dataset.n);focusMap()}});
 document.querySelectorAll('th[data-s]').forEach(th=>th.onclick=()=>{const k=th.dataset.s;sortDir=sortKey===k?-sortDir:1;sortKey=k;renderTable()});
@@ -163,14 +218,14 @@ $('selProv').onchange=()=>{renderTable();showInfo($('selProv').value);if($('selP
 $('q').oninput=renderTable;
 $('csv').onclick=()=>{const rows=visible().sort((a,b)=>a.p.localeCompare(b.p)||a.n.localeCompare(b.n));
   const t='Comune;Provincia;Filiali Banco BPM;Filiali Credit Agricole;Stato\n'+rows.map(c=>[c.n,pn(c.p),c.b,c.c,ST[c.st]].join(';')).join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+t],{type:'text/csv'}));a.download='sovrapposizioni_veneto.csv';a.click()};
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download='sovrapposizioni_veneto.csv';a.click()};
 const info=L.control({position:'topright'});
 info.onAdd=()=>{const d=L.DomUtil.create('div','pinfo');L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);d.style.display='none';
   d.addEventListener('click',e=>{if(e.target.closest('.x')){$('selProv').value='';renderTable();showInfo('');map.fitBounds(FULL);return}const a=e.target.closest('a[data-n]');if(a)selectComune(a.dataset.n)});return d};
 info.addTo(map);
 function showInfo(p){const d=info.getContainer();if(!p){d.style.display='none';return}
   const rows=Object.values(counts).filter(c=>c.p===p&&c.st!=='none'),b=rows.reduce((s,r)=>s+r.b,0),c=rows.reduce((s,r)=>s+r.c,0),ov=rows.filter(r=>r.st==='both').sort((x,y)=>(y.b+y.c)-(x.b+x.c));
-  d.innerHTML=`<button class="x" aria-label="Chiudi">×</button><div class="t">Provincia di ${esc(pn(p))}</div><div><span style="color:var(--bpm)">BPM ${b}</span> · <span style="color:var(--ca)">CA ${c}</span> · ${rows.length} comuni con filiali</div><div style="margin:6px 0 2px"><b>Comuni con entrambe: ${ov.length}</b></div>${ov.map(r=>`<a data-n="${esc(r.n)}">${esc(r.n)} <span style="color:#667085">(BPM ${r.b} · CA ${r.c})</span></a>`).join('')||'<div style="color:#667085">Nessuna sovrapposizione</div>'}`;
+  d.innerHTML=`<button class="x" aria-label="Chiudi">×</button><div class="t">Provincia di ${esc(pn(p))}</div><div><span class=c-bpm>BPM ${b}</span>, <span class=c-ca>CA ${c}</span>, ${rows.length} comuni con filiali</div><div style="margin:8px 0 2px"><b>Comuni con entrambe: ${ov.length}</b></div>${ov.map(r=>`<a data-n="${esc(r.n)}">${esc(r.n)} <span style="color:var(--mute)">(BPM ${r.b}, CA ${r.c})</span></a>`).join('')||'<div style="color:var(--mute)">Nessuna sovrapposizione</div>'}`;
   d.style.display='block'}
 function selectProvince(p){$('selProv').value=p;renderTable();const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));if(ls.length)map.fitBounds(L.featureGroup(ls).getBounds(),{padding:[20,20]});showInfo(p)}
 function focusMap(){if(innerWidth>820)return;const r=$('map').getBoundingClientRect();if(r.top<0||r.top>120)window.scrollTo({top:scrollY+r.top,behavior:'smooth'})}

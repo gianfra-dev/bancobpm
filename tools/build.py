@@ -126,7 +126,7 @@ for s in summary:
     paths.append((s,dstr))
 W=math.ceil((18.8-X0)*K*S);H=math.ceil((Y0-35.4)*S)
 svg=''.join(f'<a href="{s["slug"]}/" class="reg" data-n="{s["name"]}" data-b="{s["bpm"]}" data-c="{s["ca"]}" data-o="{s["both"]}"><title>{s["name"]}</title><path d="{ds}"/></a>' for s,ds in paths)
-rows=''.join(f'<tr><td><a href="{s["slug"]}/">{s["name"]}</a></td><td class="n g">{s["bpm"]}</td><td class="n b">{s["ca"]}</td><td class="n y">{s["both"]}</td></tr>' for s in sorted(summary,key=lambda s:s['name']))
+rows=''.join(f'<a class="tile" href="{s["slug"]}/"><strong>{s["name"]}</strong><dl><div><dd class="g">{s["bpm"]}</dd>BPM</div><div><dd class="b">{s["ca"]}</dd>CA</div><div><dd class="y">{s["both"]}</dd>entrambe</div></dl></a>' for s in sorted(summary,key=lambda s:s['name']))
 tb=sum(s['bpm'] for s in summary);tc=sum(s['ca'] for s in summary);to=sum(s['both'] for s in summary)
 html=open(f'{HERE}/landing.html').read()
 for k,v in [('__SVG__',svg),('__W__',str(W)),('__H__',str(H)),('__ROWS__',rows),('__DATE__',TODAY),('__TB__',str(tb)),('__TC__',str(tc)),('__TO__',str(to))]:html=html.replace(k,v)
