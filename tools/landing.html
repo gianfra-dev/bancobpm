@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FISAC – Filiali Banco BPM e Crédit Agricole per regione</title>
+<link rel="icon" href="assets/fisac-logo.png">
+<style>
+:root{--red:#c8102e;--ink:#1c2230;--mute:#667085}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
+body{background:linear-gradient(180deg,#fff 0%,#ffeaea 50%,#f8b4b4 100%);background-attachment:fixed}
+header{display:flex;align-items:center;gap:18px;padding:16px 28px;border-bottom:3px solid var(--red);background:#fff}
+header img{height:56px;width:auto}
+header h1{font-size:20px;margin:0;line-height:1.2}
+header p{margin:2px 0 0;color:var(--mute);font-size:13px}
+main{max-width:1100px;margin:0 auto;padding:20px 20px 40px;display:grid;grid-template-columns:minmax(300px,480px) 1fr;gap:32px;align-items:start}
+.mapbox{position:relative}
+svg{width:100%;height:auto;display:block}
+.reg path{fill:#fff;stroke:#c8102e;stroke-width:1.1;stroke-linejoin:round;transition:fill .15s}
+.reg:hover path,.reg:focus path{fill:#c8102e}
+#tip{position:absolute;pointer-events:none;background:#1c2230;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;line-height:1.5;display:none;white-space:nowrap;z-index:2}
+#tip b{font-size:13px}
+.g{color:#16a34a}.b{color:#2563eb}.y{color:#a16207}
+.card{background:rgba(255,255,255,.85);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+.tot{display:flex;gap:20px;flex-wrap:wrap}
+.tot div{font-size:12px;color:var(--mute)}.tot b{display:block;font-size:24px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;color:var(--mute);padding:4px 6px;border-bottom:1px solid #e3b4b4}
+th.n,td.n{text-align:right}
+td{padding:4px 6px;border-bottom:1px solid rgba(200,16,46,.12)}
+td a{color:var(--ink);text-decoration:none;font-weight:600}td a:hover{color:var(--red);text-decoration:underline}
+.note{font-size:12px;color:var(--mute)}
+footer{text-align:center;font-size:12px;color:#7a2a2a;padding:0 20px 24px}
+@media(max-width:820px){main{grid-template-columns:1fr}header img{height:44px}}
+</style>
+</head>
+<body>
+<header>
+  <img src="assets/fisac-logo.png" alt="FISAC CGIL">
+  <div><h1>Filiali Banco BPM e Crédit Agricole</h1><p>Mappe per regione: seleziona una regione per vedere le filiali e le sovrapposizioni sul territorio</p></div>
+</header>
+<main>
+  <div class="mapbox">
+    <svg viewBox="0 0 __W__ __H__" role="img" aria-label="Mappa schematica dell'Italia divisa per regioni">__SVG__</svg>
+    <div id="tip"></div>
+  </div>
+  <div>
+    <div class="card">
+      <div class="tot"><div><b class="g">__TB__</b>filiali Banco BPM</div><div><b class="b">__TC__</b>filiali Crédit Agricole</div><div><b class="y">__TO__</b>comuni con entrambe</div></div>
+    </div>
+    <div class="card">
+      <table><thead><tr><th>Regione</th><th class="n g">BPM</th><th class="n b">CA</th><th class="n y">Comuni sovrapposti</th></tr></thead><tbody>__ROWS__</tbody></table>
+    </div>
+    <p class="note">Dati dai locator ufficiali di bancobpm.it e credit-agricole.it, rilevati il __DATE__. Le sedi specializzate (centri imprese, corporate, private, consulenti finanziari) sono incluse nei totali; nelle mappe si possono escludere.</p>
+  </div>
+</main>
+<footer>Mappa schematica semplificata · confini ISTAT da openpolis/geojson-italy</footer>
+<script>
+const tip=document.getElementById('tip'),box=document.querySelector('.mapbox');
+document.querySelectorAll('a.reg').forEach(a=>{
+  const show=e=>{tip.innerHTML=`<b>${a.dataset.n}</b><br><span style="color:#86efac">BPM ${a.dataset.b}</span> · <span style="color:#93c5fd">CA ${a.dataset.c}</span> · <span style="color:#fde047">sovrapposti ${a.dataset.o}</span>`;tip.style.display='block';const r=box.getBoundingClientRect();tip.style.left=Math.min(e.clientX-r.left+14,r.width-200)+'px';tip.style.top=(e.clientY-r.top+14)+'px'};
+  a.addEventListener('mousemove',show);a.addEventListener('mouseleave',()=>tip.style.display='none');
+});
+</script>
+</body>
+</html>
