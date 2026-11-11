@@ -40,8 +40,13 @@ h1{font-size:clamp(34px,4.6vw,58px);line-height:1.02;letter-spacing:-.04em;font-
 .tot b{display:block;font-size:40px;line-height:1.05;letter-spacing:-.04em;font-weight:650;font-variant-numeric:tabular-nums;margin-bottom:4px}
 .g{color:var(--bpm-ink)}.b{color:var(--ca-ink)}.y{color:var(--both-ink)}
 .mapbox{position:relative}
-svg{width:100%;height:auto;display:block;max-height:calc(100dvh - 140px);margin:0 auto}
-.reg{-webkit-tap-highlight-color:rgba(200,16,46,.25);outline:none}
+.stage{perspective:1200px}
+.tilt{transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transform-style:preserve-3d;transition:transform .5s var(--ease);will-change:transform}
+svg{width:100%;height:auto;display:block;max-height:calc(100dvh - 140px);margin:0 auto;overflow:visible;--ext:rgba(130,10,30,.55);--cast:rgba(110,20,30,.28);
+  filter:drop-shadow(0 1px 0 var(--ext)) drop-shadow(0 2px 0 var(--ext)) drop-shadow(0 3px 0 var(--ext)) drop-shadow(0 4px 0 var(--ext)) drop-shadow(0 5px 0 var(--ext)) drop-shadow(0 18px 16px var(--cast))}
+@media(prefers-color-scheme:dark){svg{--ext:rgba(90,8,24,.9);--cast:rgba(0,0,0,.55)}}
+.reg{-webkit-tap-highlight-color:rgba(200,16,46,.25);outline:none;transform-box:fill-box;transition:transform .35s var(--ease)}
+.reg:hover,.reg:focus-visible,.reg.hl{transform:translateY(-4px)}
 .reg path{fill:color-mix(in srgb,var(--stroke) calc(var(--k,0)*62% + 4%),var(--region));stroke:var(--stroke);stroke-width:1.1;stroke-linejoin:round;transition:fill .25s var(--ease)}
 .reg:hover path,.reg:focus-visible path,.reg.hl path{fill:var(--stroke)}
 .key{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mute);margin-top:12px}
@@ -50,10 +55,11 @@ svg{width:100%;height:auto;display:block;max-height:calc(100dvh - 140px);margin:
 #tip b{font-size:13px}
 section.list{padding:8px 0 56px}
 h2{font-size:26px;letter-spacing:-.03em;font-weight:650;margin:0 0 20px}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.tile{display:block;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 16px;transition:transform .3s var(--ease),border-color .2s,box-shadow .3s var(--ease)}
-.tile:hover,.tile.hl{transform:translateY(-2px);border-color:var(--red);box-shadow:0 10px 24px -12px rgba(200,16,46,.45)}
-.tile:active{transform:scale(.98)}
+.grid{perspective:900px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tilewrap{perspective:900px}
+.tile{display:block;transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 16px;transition:transform .3s var(--ease),border-color .2s,box-shadow .3s var(--ease)}
+.tile:hover,.tile.hl{border-color:var(--red);box-shadow:0 10px 24px -12px rgba(200,16,46,.45)}
+.tile:active{scale:.98}
 .tile strong{display:block;font-size:15px;letter-spacing:-.01em;margin-bottom:10px}
 .tile dl{display:flex;gap:14px;flex-wrap:wrap;margin:0;font-variant-numeric:tabular-nums}
 .tile dl div{font-size:11px;color:var(--mute);line-height:1.2}
@@ -84,7 +90,7 @@ footer{border-top:1px solid var(--line);padding:20px 0 28px;font-size:12px;color
     <div class="tot"><div><b class="g">__TB__</b>filiali Banco BPM</div><div><b class="b">__TC__</b>filiali Crédit Agricole</div><div><b class="y">__TO__</b>comuni con entrambe</div></div>
   </div>
   <div class="mapbox">
-    <svg viewBox="0 0 __W__ __H__" role="img" aria-label="Mappa schematica dell'Italia divisa per regioni">__SVG__</svg>
+    <div class="stage"><div class="tilt"><svg viewBox="0 0 __W__ __H__" role="img" aria-label="Mappa schematica dell'Italia divisa per regioni">__SVG__</svg></div></div>
     <div id="tip"></div>
   </div>
 </div>
@@ -106,6 +112,14 @@ if(window.matchMedia('(hover:hover)').matches)regs.forEach(a=>{
   const show=e=>{tip.innerHTML=`<b>${a.dataset.n}</b><br><span style="color:#86efac">BPM ${a.dataset.b}</span>, <span style="color:#93c5fd">CA ${a.dataset.c}</span>, <span style="color:#fde047">sovrapposti ${a.dataset.o}</span>`;tip.style.display='block';const r=box.getBoundingClientRect();tip.style.left=Math.min(e.clientX-r.left+14,r.width-210)+'px';tip.style.top=(e.clientY-r.top+14)+'px'};
   a.addEventListener('mousemove',show);a.addEventListener('mouseleave',()=>tip.style.display='none');
 });
+
+// effetto 3D leggero: inclinazione al passaggio del puntatore, solo con mouse e senza riduzione del movimento
+if(matchMedia('(hover:hover) and (prefers-reduced-motion:no-preference)').matches){
+  const tilt=document.querySelector('.tilt'),stage=document.querySelector('.stage');let f=0,ev;
+  stage.addEventListener('pointermove',e=>{ev=e;if(f)return;f=requestAnimationFrame(()=>{f=0;const r=stage.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width-.5,y=(ev.clientY-r.top)/r.height-.5;tilt.style.setProperty('--ry',(x*10).toFixed(2)+'deg');tilt.style.setProperty('--rx',(-y*8).toFixed(2)+'deg')})});
+  stage.addEventListener('pointerleave',()=>{tilt.style.setProperty('--rx','0deg');tilt.style.setProperty('--ry','0deg')});
+  tiles.forEach(t=>{t.addEventListener('pointermove',e=>{const r=t.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;t.style.setProperty('--ty',(x*10).toFixed(2)+'deg');t.style.setProperty('--tx',(-y*8).toFixed(2)+'deg')});t.addEventListener('pointerleave',()=>{t.style.setProperty('--tx','0deg');t.style.setProperty('--ty','0deg')})});
+}
 </script>
 </body>
 </html>
