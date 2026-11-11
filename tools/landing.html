@@ -41,7 +41,6 @@ h1{font-size:clamp(34px,4.6vw,58px);line-height:1.02;letter-spacing:-.04em;font-
 .g{color:var(--bpm-ink)}.b{color:var(--ca-ink)}.y{color:var(--both-ink)}
 .mapbox{position:relative}
 .stage{perspective:1200px}
-.tilt{transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transform-style:preserve-3d;transition:transform .5s var(--ease);will-change:transform}
 svg{width:100%;height:auto;display:block;max-height:calc(100dvh - 140px);margin:0 auto;overflow:visible;--ext:rgba(130,10,30,.55);--cast:rgba(110,20,30,.28);
   filter:drop-shadow(0 1px 0 var(--ext)) drop-shadow(0 2px 0 var(--ext)) drop-shadow(0 3px 0 var(--ext)) drop-shadow(0 4px 0 var(--ext)) drop-shadow(0 5px 0 var(--ext)) drop-shadow(0 18px 16px var(--cast))}
 @media(prefers-color-scheme:dark){svg{--ext:rgba(90,8,24,.9);--cast:rgba(0,0,0,.55)}}
@@ -77,6 +76,10 @@ footer{border-top:1px solid var(--line);padding:20px 0 28px;font-size:12px;color
 }
 @media(prefers-reduced-motion:no-preference){
   .hero>*{animation:in .7s var(--ease) both}.hero>.mapbox{animation-delay:.12s}
+  .hero>div:first-child{animation:none}
+  h1 .w{display:inline-block;padding-bottom:.12em;opacity:0;transform:translateY(.6em) rotateX(-55deg);transform-origin:50% 100%;filter:blur(8px);animation:word .9s var(--ease) forwards;animation-delay:calc(.08s*var(--i) + .1s)}
+  .tot,.hero .tot{animation:in .8s var(--ease) .65s both}
+  @keyframes word{to{opacity:1;transform:none;filter:none}}
   @keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 }
 </style>
@@ -113,12 +116,16 @@ if(window.matchMedia('(hover:hover)').matches)regs.forEach(a=>{
   a.addEventListener('mousemove',show);a.addEventListener('mouseleave',()=>tip.style.display='none');
 });
 
-// effetto 3D leggero: inclinazione al passaggio del puntatore, solo con mouse e senza riduzione del movimento
+// effetto 3D leggero: inclinazione delle tessere al passaggio del puntatore, solo con mouse e senza riduzione del movimento
 if(matchMedia('(hover:hover) and (prefers-reduced-motion:no-preference)').matches){
-  const tilt=document.querySelector('.tilt'),stage=document.querySelector('.stage');let f=0,ev;
-  stage.addEventListener('pointermove',e=>{ev=e;if(f)return;f=requestAnimationFrame(()=>{f=0;const r=stage.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width-.5,y=(ev.clientY-r.top)/r.height-.5;tilt.style.setProperty('--ry',(x*10).toFixed(2)+'deg');tilt.style.setProperty('--rx',(-y*8).toFixed(2)+'deg')})});
-  stage.addEventListener('pointerleave',()=>{tilt.style.setProperty('--rx','0deg');tilt.style.setProperty('--ry','0deg')});
   tiles.forEach(t=>{t.addEventListener('pointermove',e=>{const r=t.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;t.style.setProperty('--ty',(x*10).toFixed(2)+'deg');t.style.setProperty('--tx',(-y*8).toFixed(2)+'deg')});t.addEventListener('pointerleave',()=>{t.style.setProperty('--tx','0deg');t.style.setProperty('--ty','0deg')})});
+}
+
+// titolo: le parole entrano una alla volta (solo se il movimento e' consentito)
+if(matchMedia('(prefers-reduced-motion:no-preference)').matches){
+  const h=document.querySelector('h1');let i=0;
+  h.innerHTML=h.textContent.trim().split(/\s+/).map(w=>`<span class="w" style="--i:${i++}">${w}</span>`).join(' ');
+  h.style.perspective='600px';
 }
 </script>
 </body>

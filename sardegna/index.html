@@ -109,6 +109,22 @@ button.act:active{transform:scale(.97)}
   .stat b{font-size:22px}
   .head,.ctrl,.stats,.foot{padding-left:16px;padding-right:16px}
 }
+/* effetti 3D leggeri */
+.leaflet-prov-pane svg{filter:drop-shadow(0 1px 0 rgba(51,65,85,.6)) drop-shadow(0 2px 0 rgba(51,65,85,.5)) drop-shadow(0 3px 0 rgba(51,65,85,.4)) drop-shadow(0 8px 8px rgba(15,23,42,.3))}
+.legend,.pinfo{box-shadow:0 1px 0 var(--line),0 2px 0 var(--line),0 3px 0 var(--line),0 14px 28px -10px rgba(60,20,20,.4);transform-origin:50% 100%}
+.seg button.on{box-shadow:0 2px 0 rgba(0,0,0,.35),0 6px 10px -4px rgba(0,0,0,.4)}
+button.act{box-shadow:0 2px 0 var(--line)}
+button.act:active{transform:translateY(2px);box-shadow:none}
+.stats{perspective:700px}
+.stat{transition:transform .35s var(--ease)}
+@media(hover:hover){.stat:hover{transform:translateY(-3px) rotateX(10deg)}}
+@media(prefers-reduced-motion:no-preference){
+  .legend,.pinfo{animation:pop3d .6s var(--ease) both}
+  .leaflet-popup{perspective:600px}
+  .leaflet-popup-content-wrapper{animation:pop3d .5s var(--ease) both;transform-origin:50% 100%}
+  .stats .stat{animation:pop3d .7s var(--ease) both}.stats .stat:nth-child(2){animation-delay:.06s}.stats .stat:nth-child(3){animation-delay:.12s}.stats .stat:nth-child(4){animation-delay:.18s}
+  @keyframes pop3d{from{opacity:0;transform:perspective(600px) rotateX(-22deg) translateY(10px)}to{opacity:1;transform:none}}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -118,7 +134,7 @@ button.act:active{transform:scale(.97)}
   <div class="head">
     <a class="back" href="../"><img src="../assets/fisac-logo.png" alt="FISAC"><span>← Tutte le regioni</span></a>
     <h1>Sardegna: Banco BPM e Crédit Agricole</h1>
-    <div class="sub">Filiali dai locator ufficiali di bancobpm.it e credit-agricole.it, rilevate il 10/11/2026.</div>
+    <div class="sub">Filiali dai locator ufficiali di bancobpm.it e credit-agricole.it, rilevate il 11/11/2026.</div>
   </div>
   <div class="ctrl">
     <div class="row">
@@ -164,7 +180,8 @@ const comLayer=L.geoJSON(D.comuni,{style:()=>({weight:.6,color:'#9aa3b2',fillOpa
   onEachFeature:(f,l)=>{l.on('click',()=>onMapClick(f.properties));}}).addTo(map);
 const FULL=comLayer.getBounds();map.fitBounds(FULL);
 const comByName={};comLayer.eachLayer(l=>comByName[l.feature.properties.n]=l);
-L.geoJSON(D.prov,{style:{weight:2.2,color:'#334155',fill:false},interactive:false}).addTo(map);
+map.createPane('prov');map.getPane('prov').style.zIndex=450;map.getPane('prov').style.pointerEvents='none';
+L.geoJSON(D.prov,{pane:'prov',style:{weight:2.2,color:'#334155',fill:false},interactive:false}).addTo(map);
 const brLayer=L.layerGroup().addTo(map),pairLayer=L.layerGroup().addTo(map);
 const legend=L.control({position:'bottomright'});
 legend.onAdd=()=>{const d=L.DomUtil.create('div','legend');d.innerHTML=`<div><span class=dot style="background:${COL.bpm}"></span> Banco BPM</div><div><span class=dot style="background:${COL.ca}"></span> Crédit Agricole</div><div><span style="display:inline-block;width:18px;border-top:2px solid #dc2626;vertical-align:middle;margin-right:6px"></span>Coppia vicina</div><hr><i style="background:${COL.both}"></i>Comune sovrapposto<br><i style="background:${COL.bpm}"></i>Solo BPM<br><i style="background:${COL.ca}"></i>Solo CA<br><i style="background:${COL.none}"></i>Nessuna`;return d};
