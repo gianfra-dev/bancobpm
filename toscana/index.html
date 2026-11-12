@@ -47,6 +47,7 @@ input[type=range]{flex:1;accent-color:var(--red)}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);padding:14px 20px;border-bottom:1px solid var(--line);gap:8px}
 .stat{padding:9px 8px;background:#fff;border:1px solid var(--line);border-radius:12px}
 .stat b{font-size:22px;line-height:1.1;letter-spacing:-.01em;font-weight:800;display:block;font-variant-numeric:tabular-nums}
+.scope{grid-column:1/-1;font-size:13px;color:var(--mute)}.scope b{color:var(--red-ink);font-size:14px}
 .stat span{font-size:10.5px;line-height:1.3;color:var(--mute);display:block;margin-top:2px}
 .c-bpm{color:var(--bpm-ink)}.c-ca{color:var(--ca-ink)}.c-both{color:var(--both-ink)}.c-pair{color:var(--red-ink)}
 .seg{display:flex;padding:4px;gap:2px;background:var(--soft);border-radius:var(--pill)}
@@ -65,6 +66,9 @@ tr.c{cursor:pointer;transition:background .15s}
 tr.c:hover{background:var(--hover)}
 tr.prov td{background:var(--provrow);font-weight:800;color:var(--red-ink)}
 tr.sel td{background:var(--sel)}
+tr.c.both td{background:#fbd3d8;color:#7a0a1a;font-weight:600}
+tr.c.both:hover td{background:#f7bcc4}
+tr.c.both.sel td{background:#ef95a2}
 .tag{display:inline-block;white-space:nowrap;padding:1px 9px;border-radius:var(--pill);font-size:11px;font-weight:700;color:#fff}
 .tag.both{background:var(--both);color:#422006}.tag.bpm{background:var(--bpm-ink);color:#fff}.tag.ca{background:var(--ca-ink);color:#fff}
 button.act{border:1.5px solid var(--red);background:#fff;color:var(--red);border-radius:var(--pill);padding:8px 16px;font:inherit;font-weight:700;cursor:pointer;transition:border-color .2s,transform .15s}
@@ -149,8 +153,8 @@ button.act:active{transform:translateY(2px);box-shadow:none}
     <div class="seg" id="seg">
       <button data-v="all" class="on">Tutti</button>
       <button data-v="both">Sovrapposti</button>
-      <button data-v="bpm">Solo BPM</button>
-      <button data-v="ca">Solo CA</button>
+      <button data-v="bpm">BPM</button>
+      <button data-v="ca">CA</button>
     </div>
     <div class="row">
       <span style="white-space:nowrap">Prossimità <b id="rv" style="font-family:var(--mono);font-weight:600">500</b> m</span>
@@ -160,7 +164,7 @@ button.act:active{transform:translateY(2px);box-shadow:none}
   </div>
   <div class="stats" id="stats"></div>
   <div class="tablewrap"><table id="tbl"><thead><tr>
-    <th data-s="n">Comune</th><th data-s="p">Pr.</th><th class="n c-bpm" data-s="b">BPM</th><th class="n c-ca" data-s="c">CA</th><th data-s="st">Stato</th>
+    <th data-s="n">Comune</th><th data-s="p">Pr.</th><th class="n c-bpm" data-s="b">BPM</th><th class="n c-ca" data-s="c">CA</th>
   </tr></thead><tbody></tbody></table></div>
   <div class="foot">Giallo: comune con entrambe le banche. Verde: solo BPM. Blu: solo CA. Le linee rosse uniscono filiali BPM e CA entro il raggio di prossimità.<br>Elaborazione prodotta dalla FISAC - CGIL Firenze</div>
 </aside>
@@ -178,6 +182,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const map=L.map('map',{zoomControl:true}).setView([42.5,12.5],6);
 // Sfondo: Strade e città (Esri)
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri, © OpenStreetMap contributors',maxZoom:18}).addTo(map);
+let lastAct=[],pairList=[];const REG=`Toscana`;
 let view='all',sortKey='n',sortDir=1,selected=null,counts={};
 const comLayer=L.geoJSON(D.comuni,{style:()=>({weight:1.3,color:'#8791a3',fillOpacity:.1,fillColor:COL.none}),
   onEachFeature:(f,l)=>{l.on('click',()=>onMapClick(f.properties));}}).addTo(map);
@@ -200,12 +205,21 @@ function refresh(){
   const bp=act.filter(b=>b.b==='BPM'),ca=act.filter(b=>b.b==='CA');
   act.forEach(b=>{const col=b.b==='BPM'?COL.bpm:COL.ca;
     mk.set(b,L.circleMarker([b.lat,b.lon],{radius:b.spec?4.5:6,weight:1.5,color:'#fff',fillColor:col,fillOpacity:.95}).bindPopup(popup(b)).bindTooltip(`${b.nome} (${b.b})`).addTo(brLayer))});
-  pairLayer.clearLayers();let pairs=0;
-  if(R>0)bp.forEach(a=>ca.forEach(c=>{const d=hav(a,c);if(d<=R){pairs++;
+  pairLayer.clearLayers();pairList=[];
+  if(R>0)bp.forEach(a=>ca.forEach(c=>{const d=hav(a,c);if(d<=R){pairList.push({a,c});
     L.polyline([[a.lat,a.lon],[c.lat,c.lon]],{color:'#dc2626',weight:2.5,opacity:.9}).bindTooltip(`${a.nome} ↔ ${c.nome}: ${Math.round(d)} m`).addTo(pairLayer)}}));
-  const both=Object.values(counts).filter(c=>c.st==='both').length,tot=Object.values(counts).filter(c=>c.st!=='none').length;
-  $('stats').innerHTML=`<div class=stat><b class=c-bpm>${bp.length}</b><span>filiali BPM</span></div><div class=stat><b class=c-ca>${ca.length}</b><span>filiali CA</span></div><div class=stat><b class=c-both>${both}</b><span>comuni con entrambe (su ${tot})</span></div><div class=stat><b class=c-pair>${pairs}</b><span>coppie entro ${R} m</span></div>`;
+  lastAct=act;renderStats();
   renderTable();showDetail();
+}
+function renderStats(){
+  const R=+$('rad').value,P=$('selProv').value,cm=selected&&counts[selected]?counts[selected]:null;
+  const inScope=cm?(b=>b.com===selected):P?(b=>b.prov===P):(()=>true);
+  const nb=lastAct.filter(b=>b.b==='BPM'&&inScope(b)).length,nc=lastAct.filter(b=>b.b==='CA'&&inScope(b)).length;
+  const pairs=pairList.filter(x=>inScope(x.a)&&inScope(x.c)).length;
+  const rowsAll=Object.values(counts).filter(c=>c.st!=='none'&&(!P||c.p===P)),both=rowsAll.filter(c=>c.st==='both').length;
+  const title=cm?`Comune di ${selected} (${cm.p})`:P?`Provincia di ${pn(P)}`:REG;
+  const third=cm?`<div class=stat><b>${nb+nc}</b><span>filiali nel comune</span></div>`:`<div class=stat><b class=c-both>${both}</b><span>comuni con entrambe (su ${rowsAll.length})</span></div>`;
+  $('stats').innerHTML=`<div class=scope><b>${esc(title)}</b>: ${nb+nc} filiali</div><div class=stat><b class=c-bpm>${nb}</b><span>filiali BPM</span></div><div class=stat><b class=c-ca>${nc}</b><span>filiali CA</span></div>${third}<div class=stat><b class=c-pair>${pairs}</b><span>coppie entro ${R} m</span></div>`;
 }
 function visible(){const p=$('selProv').value,q=$('q').value.trim().toLowerCase();
   return Object.values(counts).filter(c=>c.st!=='none'&&(!p||c.p===p)&&(!q||c.n.toLowerCase().includes(q))&&(view==='all'?true:c.st===view))}
@@ -216,40 +230,40 @@ function renderTable(){
   const key={n:c=>c.n,p:c=>pn(c.p)+c.n,b:c=>-c.b,c:c=>-c.c,st:c=>c.st+c.n}[sortKey];
   rows.sort((a,b)=>{const x=key(a),y=key(b);return (x>y?1:x<y?-1:0)*sortDir});
   let h='';
-  if(sortKey==='p'){let cur='';rows.forEach(c=>{if(c.p!==cur){cur=c.p;const g=rows.filter(r=>r.p===cur);h+=`<tr class=prov><td colspan=2>${esc(pn(cur))} (${g.length} comuni, ${g.filter(r=>r.st==='both').length} sovrapposti)</td><td class=n>${g.reduce((s,r)=>s+r.b,0)}</td><td class=n>${g.reduce((s,r)=>s+r.c,0)}</td><td></td></tr>`}h+=row(c)})}
+  if(sortKey==='p'){let cur='';rows.forEach(c=>{if(c.p!==cur){cur=c.p;const g=rows.filter(r=>r.p===cur);h+=`<tr class=prov><td colspan=2>${esc(pn(cur))} (${g.length} comuni, ${g.filter(r=>r.st==='both').length} sovrapposti)</td><td class=n>${g.reduce((s,r)=>s+r.b,0)}</td><td class=n>${g.reduce((s,r)=>s+r.c,0)}</td></tr>`}h+=row(c)})}
   else rows.forEach(c=>h+=row(c));
-  document.querySelector('#tbl tbody').innerHTML=h||'<tr><td colspan=5 style="padding:24px 10px;color:var(--mute)">Nessun comune corrisponde ai filtri. Prova a togliere la ricerca o a scegliere "Tutti".</td></tr>';
+  document.querySelector('#tbl tbody').innerHTML=h||'<tr><td colspan=4 style="padding:24px 10px;color:var(--mute)">Nessun comune corrisponde ai filtri. Prova a togliere la ricerca o a scegliere "Tutti".</td></tr>';
   const vis=new Set(rows.map(r=>r.n));
   comLayer.eachLayer(l=>{const n=l.feature.properties.n,c=counts[n];const sel=n===selected;l.setStyle({fillColor:COL[c.st],fillOpacity:sel?.12:vis.has(n)?opOf(c.st):.03,weight:sel?2.6:1.3,color:sel?'#a50f22':'#8791a3'})});
 }
-function row(c){return `<tr class="c${selected===c.n?' sel':''}" data-n="${esc(c.n)}"><td>${esc(c.n)}</td><td>${c.p}</td><td class=n>${c.b||''}</td><td class=n>${c.c||''}</td><td>${c.st==='none'?'-':`<span class="tag ${c.st}">${ST[c.st]}</span>`}</td></tr>`}
+function row(c){return `<tr class="c${c.st==='both'?' both':''}${selected===c.n?' sel':''}" data-n="${esc(c.n)}"><td>${esc(c.n)}</td><td>${c.p}</td><td class=n>${c.b||''}</td><td class=n>${c.c||''}</td></tr>`}
 function selectComune(n){selected=n;const l=comByName[n];if(!l)return;map.fitBounds(l.getBounds(),{maxZoom:13,padding:[30,30]});
-  renderTable();showDetail()}
+  renderTable();showDetail();renderStats()}
 document.querySelector('#tbl tbody').addEventListener('click',e=>{const tr=e.target.closest('tr.c');if(tr){selectComune(tr.dataset.n);focusMap()}});
 document.querySelectorAll('th[data-s]').forEach(th=>th.onclick=()=>{const k=th.dataset.s;sortDir=sortKey===k?-sortDir:1;sortKey=k;renderTable()});
 document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');view=b.dataset.v;renderTable()});
 ['cBpm','cCa','cSpec'].forEach(id=>$(id).onchange=refresh);$('rad').oninput=refresh;
-$('selProv').onchange=()=>{renderTable();if($('selProv').value)focusMap();const p=$('selProv').value;if(p){const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));map.fitBounds(L.featureGroup(ls).getBounds())}else map.fitBounds(FULL)};
+$('selProv').onchange=()=>{const P=$('selProv').value;if(selected&&counts[selected]&&P&&counts[selected].p!==P)selected=null;renderTable();showDetail();renderStats();if($('selProv').value)focusMap();const p=$('selProv').value;if(p){const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));map.fitBounds(L.featureGroup(ls).getBounds())}else map.fitBounds(FULL)};
 $('q').oninput=renderTable;
 $('csv').onclick=()=>{const rows=visible().sort((a,b)=>a.p.localeCompare(b.p)||a.n.localeCompare(b.n));
   const t='Comune;Provincia;Filiali Banco BPM;Filiali Credit Agricole;Stato\n'+rows.map(c=>[c.n,pn(c.p),c.b,c.c,ST[c.st]].join(';')).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download='sovrapposizioni_toscana.csv';a.click()};
 const info=L.control({position:'topright'});
 info.onAdd=()=>{const d=L.DomUtil.create('div','pinfo');L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);d.style.display='none';
-  d.addEventListener('click',e=>{if(e.target.closest('.x')){selected=null;renderTable();showDetail();return}
+  d.addEventListener('click',e=>{if(e.target.closest('.x')){selected=null;renderTable();showDetail();renderStats();return}
     const a=e.target.closest('a[data-i]');if(a){const m=mk.get(shown[+a.dataset.i]);if(m){map.setView(m.getLatLng(),Math.max(map.getZoom(),15));m.openPopup()}}});return d};
 info.addTo(map);
 let shown=[];
 function showDetail(){const d=info.getContainer();const c=selected&&counts[selected];if(!c){d.style.display='none';shown=[];return}
   shown=active().filter(b=>b.com===selected).sort((x,y)=>x.b.localeCompare(y.b)||x.nome.localeCompare(y.nome));
-  d.innerHTML=`<button class="x" aria-label="Chiudi">×</button><div class="t">${esc(selected)} (${esc(c.p)})</div><div><span class=c-bpm>BPM ${c.b}</span>, <span class=c-ca>CA ${c.c}</span></div>`+
+  d.innerHTML=`<button class="x" aria-label="Chiudi">×</button><div class="t">${esc(selected)} (${esc(c.p)})</div><div><b>Totale: ${c.b+c.c} filiali</b> (<span class=c-bpm>BPM ${c.b}</span>, <span class=c-ca>CA ${c.c}</span>)</div>`+
     (shown.length?['BPM','CA'].map(k=>{const L=shown.map((b,i)=>[b,i]).filter(x=>x[0].b===k);if(!L.length)return '';
       return `<div class="bk ${k==='BPM'?'bpm':'ca'}"><div class="bh">${k==='BPM'?'Banco BPM':'Crédit Agricole'} <span>${L.length} ${L.length===1?'filiale':'filiali'}</span></div>`+
         L.map(([b,i])=>`<a data-i="${i}"><b>${esc(b.nome)}</b><span class=sm>${esc(b.ind)}${b.cap?' - '+esc(b.cap):''}</span><span class=sm>${esc(b.tip)}</span></a>`).join('')+`</div>`}).join(''):'<div style="color:var(--mute);margin-top:8px">Nessuna filiale in questo comune con i filtri attuali.</div>');
   d.style.display='block';d.scrollTop=0}
-function selectProvince(p){$('selProv').value=p;renderTable();const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));if(ls.length)map.fitBounds(L.featureGroup(ls).getBounds(),{padding:[20,20]})}
+function selectProvince(p){$('selProv').value=p;renderTable();renderStats();const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));if(ls.length)map.fitBounds(L.featureGroup(ls).getBounds(),{padding:[20,20]})}
 function focusMap(){if(innerWidth>900)return;const r=$('map').getBoundingClientRect();if(r.top<0||r.top>120)window.scrollTo({top:scrollY+r.top,behavior:'smooth'})}
-function onMapClick(pr){selectComune(pr.n)}
+function onMapClick(pr){$('selProv').value=pr.p;selectComune(pr.n)}
 refresh();
 </script>
 </body>
