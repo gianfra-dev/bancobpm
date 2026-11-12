@@ -24,8 +24,8 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;font:14px/1.5 var(--sans);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:2px solid var(--red);outline-offset:2px}
-#app{display:grid;grid-template-columns:420px 1fr;height:100%}
-aside{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#app{display:grid;grid-template-columns:clamp(340px,36vw,440px) 1fr;height:100vh;height:100dvh}
+aside{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;overflow-y:auto}
 .head{padding:16px 20px 14px;border-bottom:1px solid var(--line)}
 .back{display:inline-flex;align-items:center;gap:12px;text-decoration:none;color:var(--red-ink);font-size:13px;font-weight:700;margin-bottom:12px;border-radius:var(--r)}
 .back img{height:30px;width:auto;border-radius:6px}
@@ -54,7 +54,7 @@ input[type=range]{flex:1;accent-color:var(--red)}
 .seg button:hover{color:var(--ink)}
 .seg button:active{transform:scale(.97)}
 .seg button.on{background:var(--red);color:#fff}
-.tablewrap{flex:1;overflow:auto;min-height:0}
+.tablewrap{flex:1 1 auto;overflow:auto;min-height:240px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{position:sticky;top:0;background:var(--surface);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);white-space:nowrap;user-select:none}
 th:hover{color:var(--red)}
@@ -87,15 +87,20 @@ button.act:active{transform:scale(.97)}
 .pinfo .t{font-size:15px;font-weight:800;color:var(--red-ink)}
 .pinfo a{display:block;padding:7px 0;color:var(--ink);cursor:pointer;border-top:1px solid var(--line);transition:color .15s}
 .pinfo a:hover{color:var(--red)}
-@media(max-width:820px){
-  #app{grid-template-columns:1fr;grid-template-rows:60vh auto;height:auto;min-height:100%}
-  #map{order:-1;height:60vh}
+@media(max-width:900px){
+  #app{grid-template-columns:1fr;grid-template-rows:auto auto;height:auto;min-height:100%}
+  #map{order:-1;height:56vh;height:56svh;min-height:300px}
   aside{border:0;overflow:visible}
-  .tablewrap{flex:none;max-height:65vh}
+  .tablewrap{flex:none;max-height:70vh}
   .legend{font-size:11px;padding:6px 9px;line-height:1.55}
-  .stat b{font-size:22px}
+  .stat b{font-size:20px}
   .head,.ctrl,.stats,.foot{padding-left:16px;padding-right:16px}
 }
+/* telefono in orizzontale: mappa e pannello affiancati */
+@media(max-width:900px) and (orientation:landscape) and (max-height:520px){#app{grid-template-columns:320px 1fr;height:100vh;height:100dvh}#map{order:0;height:100%;min-height:0}aside{overflow:auto;border-right:1px solid var(--line)}.tablewrap{flex:none;max-height:none;overflow:visible}}
+@media(max-width:480px){.head,.ctrl,.stats,.foot{padding-left:12px;padding-right:12px}h1{font-size:17px}.stats{gap:6px}.stat{padding:8px 6px}.stat b{font-size:18px}.stat span{font-size:10.5px}.seg button{font-size:12px;padding:7px 2px}.legend{font-size:10.5px;padding:5px 7px;line-height:1.35;max-width:48vw}.pinfo{width:min(260px,78vw)}td,th{padding-left:6px;padding-right:6px}}
+/* dispositivi touch: bersagli piu' grandi */
+@media(pointer:coarse){button,select,input[type=search]{min-height:44px}.seg button{min-height:44px}input[type=checkbox]{width:20px;height:20px}label{padding:6px 0}input[type=range]{height:32px}tr.c td{padding-top:10px;padding-bottom:10px}.leaflet-bar a{width:36px;height:36px;line-height:36px}}
 /* effetti 3D leggeri */
 .leaflet-prov-pane svg{filter:drop-shadow(0 1px 0 rgba(120,10,25,.65)) drop-shadow(0 2px 0 rgba(120,10,25,.5)) drop-shadow(0 3px 0 rgba(120,10,25,.4)) drop-shadow(0 8px 8px rgba(80,10,20,.28))}
 .legend,.pinfo{box-shadow:0 1px 0 var(--line),0 2px 0 var(--line),0 3px 0 var(--line),0 14px 28px -10px rgba(120,10,25,.35);transform-origin:50% 100%}
@@ -105,7 +110,7 @@ button.act:active{transform:translateY(2px);box-shadow:none}
 .stats{perspective:700px}
 .stat{transition:transform .35s var(--ease)}
 @media(hover:hover){.stat:hover{transform:translateY(-3px) rotateX(10deg)}}
-@media(max-width:820px){.leaflet-prov-pane svg{filter:drop-shadow(0 1px 0 rgba(120,10,25,.65)) drop-shadow(0 2px 0 rgba(120,10,25,.45)) drop-shadow(0 4px 4px rgba(80,10,20,.25))}}
+@media(max-width:900px){.leaflet-prov-pane svg{filter:drop-shadow(0 1px 0 rgba(120,10,25,.65)) drop-shadow(0 2px 0 rgba(120,10,25,.45)) drop-shadow(0 4px 4px rgba(80,10,20,.25))}}
 @media(prefers-reduced-motion:no-preference){
   .legend,.pinfo{animation:pop3d .6s var(--ease) both}
   .leaflet-popup{perspective:600px}
@@ -156,6 +161,8 @@ button.act:active{transform:translateY(2px);box-shadow:none}
 </div>
 <script>
 const D=__DATA__;
+function dec(fc){fc.features.forEach(f=>{f.geometry.coordinates=f.geometry.coordinates.map(p=>p.map(r=>{const o=[];let x=0,y=0;for(let i=0;i<r.length;i+=2){x+=r[i];y+=r[i+1];o.push([x/1e4,y/1e4])}return o}))})}
+dec(D.comuni);dec(D.prov);
 const PROVN=__PROVN__;
 const COL={bpm:'#16a34a',ca:'#2563eb',both:'#facc15',none:'#e5e7eb'};
 const opOf=st=>st==='none'?.1:st==='both'?.65:.4;
@@ -233,7 +240,7 @@ function showInfo(p){const d=info.getContainer();if(!p){d.style.display='none';r
   d.innerHTML=`<button class="x" aria-label="Chiudi">×</button><div class="t">Provincia di ${esc(pn(p))}</div><div><span class=c-bpm>BPM ${b}</span>, <span class=c-ca>CA ${c}</span>, ${rows.length} comuni con filiali</div><div style="margin:8px 0 2px"><b>Comuni con entrambe: ${ov.length}</b></div>${ov.map(r=>`<a data-n="${esc(r.n)}">${esc(r.n)} <span style="color:var(--mute)">(BPM ${r.b}, CA ${r.c})</span></a>`).join('')||'<div style="color:var(--mute)">Nessuna sovrapposizione</div>'}`;
   d.style.display='block'}
 function selectProvince(p){$('selProv').value=p;renderTable();const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));if(ls.length)map.fitBounds(L.featureGroup(ls).getBounds(),{padding:[20,20]});showInfo(p)}
-function focusMap(){if(innerWidth>820)return;const r=$('map').getBoundingClientRect();if(r.top<0||r.top>120)window.scrollTo({top:scrollY+r.top,behavior:'smooth'})}
+function focusMap(){if(innerWidth>900)return;const r=$('map').getBoundingClientRect();if(r.top<0||r.top>120)window.scrollTo({top:scrollY+r.top,behavior:'smooth'})}
 function onMapClick(pr){if($('selProv').value!==pr.p)selectProvince(pr.p);else selectComune(pr.n)}
 refresh();
 </script>

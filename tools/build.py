@@ -33,7 +33,9 @@ def dp(pts,eps):
             if dd>mx:mx=dd;mi=i
         if mx>eps:keep[mi]=True;st.append((a,mi));st.append((mi,b))
     return [p for p,k in zip(pts,keep) if k]
-def simp(coords,eps=0.0002,nd=4):
+EPS=float(os.environ.get('EPS',0.0002));ND=int(os.environ.get('ND',4))   # EPS piu' alto = confini piu' semplici (file piu' leggero)
+def simp(coords,eps=None,nd=None):
+    eps=EPS if eps is None else eps;nd=ND if nd is None else nd
     out=[]
     for ring in coords:
         m=len(ring)//2;r=dp(ring[:m+1],eps)[:-1]+dp(ring[m:],eps) if len(ring)>=8 else ring;r=[[round(x,nd),round(y,nd)] for x,y in r]
@@ -64,6 +66,12 @@ KEY={'valledaostavalleedaoste':'valledaosta','trentinoaltoadigesudtirol':'trenti
 regs=json.load(open(f'{DATA}/g/regions.geojson'))['features']
 slugof=lambda n:{'valledaostavalleedaoste':'valle-d-aosta','trentinoaltoadigesudtirol':'trentino-alto-adige'}.get(norm(n),re.sub(r'[^a-z]+','-',unicodedata.normalize('NFKD',n.lower()).encode('ascii','ignore').decode()).strip('-'))
 SHORT={"Valle d'Aosta/Vallée d'Aoste":"Valle d'Aosta",'Trentino-Alto Adige/Südtirol':'Trentino-Alto Adige'}
+def encring(r):   # anello -> [x0,y0,dx,dy,...] in interi (1e-4 gradi): molto piu' compatto; la pagina lo decodifica
+    o=[];px=py=0
+    for x,y in r:
+        X=round(x*1e4);Y=round(y*1e4);o+=[X-px,Y-py];px,py=X,Y
+    return o
+def enc(fs):return [{**f,'geometry':{'type':'MultiPolygon','coordinates':[[encring(r) for r in p] for p in (f['geometry']['coordinates'] if f['geometry']['type']=='MultiPolygon' else [f['geometry']['coordinates']])]}} for f in fs]
 summary=[]
 for rf in regs:
     rp=rf['properties'];code=rp['reg_istat_code_num'];rname=SHORT.get(rp['reg_name'],rp['reg_name']);slug=slugof(rp['reg_name'])
@@ -104,7 +112,7 @@ for rf in regs:
                 dl=(a['lat']-b['lat'])*111320;dn=(a['lon']-b['lon'])*111320*math.cos(math.radians(a['lat']))
                 if dl*dl+dn*dn<=250000:P+=1
     print(f"{rname:22} BPM {nb:4} CA {nc:4} comuni {len(cf):4} sovrapposti {both:3} coppie500 {P:3} fuori-comune {bad}")
-    data=json.dumps({'comuni':{'type':'FeatureCollection','features':cf},'prov':{'type':'FeatureCollection','features':pf},'br':br},separators=(',',':'),ensure_ascii=False)
+    data=json.dumps({'comuni':{'type':'FeatureCollection','features':enc(cf)},'prov':{'type':'FeatureCollection','features':enc(pf)},'br':br},separators=(',',':'),ensure_ascii=False)
     t=open(f'{HERE}/template.html').read()
     for k,v in [('__REG__',rname),('__DATE__',TODAY),('__PROVN__',json.dumps(PROVN,ensure_ascii=False)),('__SLUG__',slug),('__DATA__',data)]:
         t=t.replace(k,v)

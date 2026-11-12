@@ -2,10 +2,15 @@
 """Crea un unico file HTML (pagina iniziale + 20 regioni) a partire dalle pagine gia' generate da build.py.
 Ogni pagina regionale e' compressa (gzip) e decompressa nel browser solo quando serve (DecompressionStream).
 Logo (ed eventuali font) sono incorporati nel file. Le librerie della mappa (Leaflet) e le tessere OpenStreetMap restano online.
-Uso: python3 build_singolo.py [file_output]      (default: ../filiali-bpm-ca.html)"""
-import os,re,sys,glob,json,base64,zlib
+Uso: python3 build_singolo.py [file_output]      (default: ../filiali-bpm-ca.html)
+     Per impostazione predefinita le pagine vengono rigenerate in una cartella temporanea con confini semplificati (~110 m, EPS=0.001)
+     e il file risulta piu' leggero. DATI=<cartella_dati> indica i dati scaricati da fetch.sh; SENZA_SEMPLIFICARE=1 usa le pagine gia' generate."""
+import os,re,sys,glob,json,base64,zlib,subprocess,tempfile
 HERE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.abspath(os.path.join(HERE,'..'))
 OUT=sys.argv[1] if len(sys.argv)>1 else f'{ROOT}/filiali-bpm-ca.html'
+SRC=ROOT   # cartella con le pagine da inglobare
+if os.environ.get('DATI') and not os.environ.get('SENZA_SEMPLIFICARE'):
+    SRC=tempfile.mkdtemp();subprocess.run([sys.executable,f'{HERE}/build.py',os.environ['DATI'],SRC],check=True,env={**os.environ,'EPS':os.environ.get('EPS','0.001')},stdout=subprocess.DEVNULL)
 b64=lambda p,m:f'data:{m};base64,'+base64.b64encode(open(p,'rb').read()).decode()
 logo=b64(f'{ROOT}/assets/fisac-logo.png','image/png')
 FD=f'{ROOT}/assets/fonts'   # font web opzionali: se la cartella non esiste si usano i font di sistema
@@ -16,11 +21,11 @@ def strip_assets(h,pre):
     h=h.replace(f'<link rel="icon" href="{pre}assets/fisac-logo.png">','')
     for n in FONTS:h=h.replace(f'url({pre}assets/fonts/{n}.woff2)',f'url(@@F:{n}@@)')
     return h.replace(f'{pre}assets/fisac-logo.png','@@LOGO@@')
-land=strip_assets(open(f'{ROOT}/index.html',encoding='utf-8').read(),'')
+land=strip_assets(open(f'{SRC}/index.html',encoding='utf-8').read(),'')
 for n,u in FONTS.items():land=land.replace(f'@@F:{n}@@',u)
 land=land.replace('@@LOGO@@',logo)
 blocks=[];slugs=[];raw=0
-for p in sorted(glob.glob(f'{ROOT}/*/index.html')):
+for p in sorted(glob.glob(f'{SRC}/*/index.html')):
     slug=os.path.basename(os.path.dirname(p))
     h=open(p,encoding='utf-8').read()
     if '<a class="back" href="../"' not in h:continue

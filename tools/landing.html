@@ -67,6 +67,9 @@ footer{border-top:1px solid var(--line);padding:20px 0 28px;font-size:12px;color
   .tile dl{gap:10px;flex-wrap:nowrap}
   .tile dl div{font-size:10.5px}
 }
+@media(max-width:480px){nav{height:58px}nav img{height:34px}.wrap{padding:0 14px}h2{font-size:20px}.note{font-size:12.5px}}
+@media(max-height:520px) and (orientation:landscape){.hero{min-height:0;padding:20px 0 28px}svg{max-height:none}}
+@media(pointer:coarse){.tile{padding-top:14px;padding-bottom:16px}}
 @media(prefers-reduced-motion:no-preference){
   .hero>*{animation:in .7s var(--ease) both}.hero>.mapbox{animation-delay:.12s}
   .hero>div:first-child{animation:none}
