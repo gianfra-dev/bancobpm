@@ -135,9 +135,10 @@ for s in summary:
     paths.append((s,dstr))
 W=math.ceil((18.8-X0)*K*S);H=math.ceil((Y0-36.5)*S)
 svg=''.join(f'<a href="{s["slug"]}/" class="reg" data-n="{s["name"]}" data-b="{s["bpm"]}" data-c="{s["ca"]}" data-o="{s["both"]}"><title>{s["name"]}</title><path d="{ds}"/></a>' for s,ds in paths)
-rows=''.join(f'<a class="tile" href="{s["slug"]}/"><strong>{s["name"]}</strong><dl><div><dd class="g">{s["bpm"]}</dd>BPM</div><div><dd class="b">{s["ca"]}</dd>CA</div><div><dd class="y">{s["both"]}</dd>entrambe</div></dl></a>' for s in sorted(summary,key=lambda s:s['name']))
+fm=lambda n:f'{n:,}'.replace(',','.')   # migliaia con il punto
+rows=''.join(f'<a class="tile" href="{s["slug"]}/"><strong>{s["name"]}</strong><dl><div><dd class="g">{fm(s["bpm"])}</dd>BPM</div><div><dd class="b">{fm(s["ca"])}</dd>CA</div><div><dd class="y">{fm(s["both"])}</dd>entrambe</div></dl></a>' for s in sorted(summary,key=lambda s:s['name']))
 tb=sum(s['bpm'] for s in summary);tc=sum(s['ca'] for s in summary);to=sum(s['both'] for s in summary)
 html=open(f'{HERE}/landing.html').read()
-for k,v in [('__SVG__',svg),('__W__',str(W)),('__H__',str(H)),('__ROWS__',rows),('__DATE__',TODAY),('__TB__',str(tb)),('__TC__',str(tc)),('__TO__',str(to))]:html=html.replace(k,v)
+for k,v in [('__SVG__',svg),('__W__',str(W)),('__H__',str(H)),('__ROWS__',rows),('__DATE__',TODAY),('__TB__',fm(tb)),('__TC__',fm(tc)),('__TO__',fm(to))]:html=html.replace(k,v)
 open(f'{ROOT}/index.html','w').write(html)
 print('TOTALE BPM',tb,'CA',tc,'sovrapposti',to)

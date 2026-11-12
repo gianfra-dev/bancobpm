@@ -178,6 +178,7 @@ const PROVN={"PZ": "Potenza", "MT": "Matera"};
 const COL={bpm:'#16a34a',ca:'#2563eb',both:'#facc15',none:'#e5e7eb'};
 const opOf=st=>st==='none'?.1:st==='both'?.65:.4;
 const $=id=>document.getElementById(id);
+const fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const map=L.map('map',{zoomControl:true}).setView([42.5,12.5],6);
 // Sfondo: Strade e città (Esri)
@@ -218,8 +219,8 @@ function renderStats(){
   const pairs=pairList.filter(x=>inScope(x.a)&&inScope(x.c)).length;
   const rowsAll=Object.values(counts).filter(c=>c.st!=='none'&&(!P||c.p===P)),both=rowsAll.filter(c=>c.st==='both').length;
   const title=cm?`Comune di ${selected} (${cm.p})`:P?`Provincia di ${pn(P)}`:REG;
-  const third=cm?`<div class=stat><b>${nb+nc}</b><span>filiali nel comune</span></div>`:`<div class=stat><b class=c-both>${both}</b><span>comuni con entrambe (su ${rowsAll.length})</span></div>`;
-  $('stats').innerHTML=`<div class=scope><b>${esc(title)}</b>: ${nb+nc} filiali</div><div class=stat><b class=c-bpm>${nb}</b><span>filiali BPM</span></div><div class=stat><b class=c-ca>${nc}</b><span>filiali CA</span></div>${third}<div class=stat><b class=c-pair>${pairs}</b><span>coppie entro ${R} m</span></div>`;
+  const third=cm?`<div class=stat><b>${fmt(nb+nc)}</b><span>filiali nel comune</span></div>`:`<div class=stat><b class=c-both>${both}</b><span>comuni con entrambe (su ${rowsAll.length})</span></div>`;
+  $('stats').innerHTML=`<div class=scope><b>${esc(title)}</b>: ${fmt(nb+nc)} filiali</div><div class=stat><b class=c-bpm>${fmt(nb)}</b><span>filiali BPM</span></div><div class=stat><b class=c-ca>${fmt(nc)}</b><span>filiali CA</span></div>${third}<div class=stat><b class=c-pair>${fmt(pairs)}</b><span>coppie entro ${R} m</span></div>`;
 }
 function visible(){const p=$('selProv').value,q=$('q').value.trim().toLowerCase();
   return Object.values(counts).filter(c=>c.st!=='none'&&(!p||c.p===p)&&(!q||c.n.toLowerCase().includes(q))&&(view==='all'?true:c.st===view))}
