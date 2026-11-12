@@ -81,12 +81,19 @@ button.act:active{transform:scale(.97)}
 .pop b{font-size:13px}
 .pop .m{color:var(--mute);font-size:12px}
 .foot{padding:12px 20px;font-size:11px;line-height:1.5;color:var(--mute);border-top:1px solid var(--line)}
-.pinfo{background:var(--surface);color:var(--ink);padding:14px;border-radius:var(--r-lg);box-shadow:var(--shadow);width:min(280px,72vw);max-height:42vh;overflow:auto;font-size:13px;line-height:1.45}
+.pinfo{background:var(--surface);color:var(--ink);padding:14px;border-radius:var(--r-lg);box-shadow:var(--shadow);width:min(300px,78vw);max-height:56vh;overflow:auto;font-size:13px;line-height:1.45}
 .pinfo .x{float:right;border:0;background:none;font-size:22px;line-height:1;cursor:pointer;padding:0 2px;color:var(--mute);border-radius:6px}
 .pinfo .x:hover{color:var(--ink)}
 .pinfo .t{font-size:15px;font-weight:800;color:var(--red-ink)}
-.pinfo a{display:block;padding:7px 0;color:var(--ink);cursor:pointer;border-top:1px solid var(--line);transition:color .15s}
-.pinfo a:hover{color:var(--red)}
+.pinfo .bk{margin-top:10px;border:1px solid var(--line);border-top:3px solid var(--bpm);border-radius:var(--r);overflow:hidden}
+.pinfo .bk.ca{border-top-color:var(--ca)}
+.pinfo .bh{display:flex;justify-content:space-between;gap:8px;padding:7px 10px;background:var(--soft);font-weight:800;font-size:12.5px}
+.pinfo .bk.bpm .bh{color:var(--bpm-ink)}.pinfo .bk.ca .bh{color:var(--ca-ink)}
+.pinfo .bh span{font-weight:600;color:var(--mute)}
+.pinfo a{display:block;padding:8px 10px;color:var(--ink);cursor:pointer;border-top:1px solid var(--line);transition:background .15s;line-height:1.35}
+.pinfo a:hover{background:var(--soft);color:var(--ink)}
+.pinfo a b{display:block}
+.pinfo a .sm{display:block;font-size:12px;color:var(--mute)}
 @media(max-width:900px){
   #app{grid-template-columns:1fr;grid-template-rows:auto auto;height:auto;min-height:100%}
   #map{order:-1;height:56vh;height:56svh;min-height:300px}
@@ -177,30 +184,27 @@ const FULL=comLayer.getBounds();map.fitBounds(FULL);
 const comByName={};comLayer.eachLayer(l=>comByName[l.feature.properties.n]=l);
 map.createPane('prov');map.getPane('prov').style.zIndex=450;map.getPane('prov').style.pointerEvents='none';
 L.geoJSON(D.prov,{pane:'prov',style:{weight:2.2,color:'#334155',fill:false},interactive:false}).addTo(map);
-const brLayer=L.layerGroup().addTo(map),pairLayer=L.layerGroup().addTo(map);
-const legend=L.control({position:'bottomright'});
-legend.onAdd=()=>{const d=L.DomUtil.create('div','legend');d.innerHTML=`<div><span class=dot style="background:${COL.bpm}"></span> Banco BPM</div><div><span class=dot style="background:${COL.ca}"></span> Crédit Agricole</div><div><span style="display:inline-block;width:18px;border-top:2px solid #dc2626;vertical-align:middle;margin-right:6px"></span>Coppia vicina</div><hr><i style="background:${COL.both}"></i>Comune sovrapposto<br><i style="background:${COL.bpm}"></i>Solo BPM<br><i style="background:${COL.ca}"></i>Solo CA<br><i style="background:${COL.none}"></i>Nessuna`;return d};
-legend.addTo(map);
+const mk=new Map();const brLayer=L.layerGroup().addTo(map),pairLayer=L.layerGroup().addTo(map);
 Object.entries(PROVN).sort((a,b)=>a[1].localeCompare(b[1])).forEach(([k,v])=>$('selProv').insertAdjacentHTML('beforeend',`<option value="${k}">${v}</option>`));
 const hav=(a,b)=>{const R=6371000,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lon-a.lon)*r,x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
 function active(){return D.br.filter(b=>(b.b==='BPM'?$('cBpm').checked:$('cCa').checked)&&!($('cSpec').checked&&b.spec))}
-function popup(b){return `<div class=pop><b>${esc(b.nome)}</b><div class=m>${b.b==='BPM'?'Banco BPM':'Crédit Agricole'}, ${esc(b.marchio)}</div>${esc(b.ind)}${b.cap?' - '+esc(b.cap):''}<br>${esc(b.com)} (${b.prov})<div class=m>${esc(b.tip)}, cod. ${esc(b.cod)}${b.tel?', tel. '+esc(b.tel):''}</div></div>`}
+function popup(b){return `<div class=pop><b>${esc(b.nome)}</b><div class=m>${b.b==='BPM'?'Banco BPM':'Crédit Agricole'}, ${esc(b.marchio)}</div>${esc(b.ind)}${b.cap?' - '+esc(b.cap):''}<br>${esc(b.com)} (${b.prov})<div class=m>${esc(b.tip)}, cod. ${esc(b.cod)}</div></div>`}
 function refresh(){
   const act=active(),R=+$('rad').value;$('rv').textContent=R;
   counts={};
   comLayer.eachLayer(l=>{const p=l.feature.properties;counts[p.n]={n:p.n,p:p.p,b:0,c:0}});
   act.forEach(b=>{const c=counts[b.com];if(c){b.b==='BPM'?c.b++:c.c++}});
   Object.values(counts).forEach(c=>c.st=c.b&&c.c?'both':c.b?'bpm':c.c?'ca':'none');
-  brLayer.clearLayers();
+  brLayer.clearLayers();mk.clear();
   const bp=act.filter(b=>b.b==='BPM'),ca=act.filter(b=>b.b==='CA');
   act.forEach(b=>{const col=b.b==='BPM'?COL.bpm:COL.ca;
-    L.circleMarker([b.lat,b.lon],{radius:b.spec?4.5:6,weight:1.5,color:'#fff',fillColor:col,fillOpacity:.95}).bindPopup(popup(b)).bindTooltip(`${b.nome} (${b.b})`).addTo(brLayer)});
+    mk.set(b,L.circleMarker([b.lat,b.lon],{radius:b.spec?4.5:6,weight:1.5,color:'#fff',fillColor:col,fillOpacity:.95}).bindPopup(popup(b)).bindTooltip(`${b.nome} (${b.b})`).addTo(brLayer))});
   pairLayer.clearLayers();let pairs=0;
   if(R>0)bp.forEach(a=>ca.forEach(c=>{const d=hav(a,c);if(d<=R){pairs++;
     L.polyline([[a.lat,a.lon],[c.lat,c.lon]],{color:'#dc2626',weight:2.5,opacity:.9}).bindTooltip(`${a.nome} ↔ ${c.nome}: ${Math.round(d)} m`).addTo(pairLayer)}}));
   const both=Object.values(counts).filter(c=>c.st==='both').length,tot=Object.values(counts).filter(c=>c.st!=='none').length;
   $('stats').innerHTML=`<div class=stat><b class=c-bpm>${bp.length}</b><span>filiali BPM</span></div><div class=stat><b class=c-ca>${ca.length}</b><span>filiali CA</span></div><div class=stat><b class=c-both>${both}</b><span>comuni con entrambe (su ${tot})</span></div><div class=stat><b class=c-pair>${pairs}</b><span>coppie entro ${R} m</span></div>`;
-  renderTable();showInfo($('selProv').value);
+  renderTable();showDetail();
 }
 function visible(){const p=$('selProv').value,q=$('q').value.trim().toLowerCase();
   return Object.values(counts).filter(c=>c.st!=='none'&&(!p||c.p===p)&&(!q||c.n.toLowerCase().includes(q))&&(view==='all'?true:c.st===view))}
@@ -219,29 +223,32 @@ function renderTable(){
 }
 function row(c){return `<tr class="c${selected===c.n?' sel':''}" data-n="${esc(c.n)}"><td>${esc(c.n)}</td><td>${c.p}</td><td class=n>${c.b||''}</td><td class=n>${c.c||''}</td><td>${c.st==='none'?'-':`<span class="tag ${c.st}">${ST[c.st]}</span>`}</td></tr>`}
 function selectComune(n){selected=n;const l=comByName[n];if(!l)return;map.fitBounds(l.getBounds(),{maxZoom:13,padding:[30,30]});
-  const c=counts[n],bs=active().filter(b=>b.com===n);
-  l.bindPopup(`<div class=pop><b>${esc(n)} (${c.p})</b><div class=m>BPM: ${c.b}, CA: ${c.c}</div>${bs.map(b=>`<div style="color:${b.b==='BPM'?COL.bpm:COL.ca}">● ${esc(b.nome)} <span class=m>(${esc(b.ind)})</span></div>`).join('')}</div>`,{maxWidth:340}).openPopup(l.getBounds().getCenter());
-  renderTable()}
+  renderTable();showDetail()}
 document.querySelector('#tbl tbody').addEventListener('click',e=>{const tr=e.target.closest('tr.c');if(tr){selectComune(tr.dataset.n);focusMap()}});
 document.querySelectorAll('th[data-s]').forEach(th=>th.onclick=()=>{const k=th.dataset.s;sortDir=sortKey===k?-sortDir:1;sortKey=k;renderTable()});
 document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');view=b.dataset.v;renderTable()});
 ['cBpm','cCa','cSpec'].forEach(id=>$(id).onchange=refresh);$('rad').oninput=refresh;
-$('selProv').onchange=()=>{renderTable();showInfo($('selProv').value);if($('selProv').value)focusMap();const p=$('selProv').value;if(p){const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));map.fitBounds(L.featureGroup(ls).getBounds())}else map.fitBounds(FULL)};
+$('selProv').onchange=()=>{renderTable();if($('selProv').value)focusMap();const p=$('selProv').value;if(p){const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));map.fitBounds(L.featureGroup(ls).getBounds())}else map.fitBounds(FULL)};
 $('q').oninput=renderTable;
 $('csv').onclick=()=>{const rows=visible().sort((a,b)=>a.p.localeCompare(b.p)||a.n.localeCompare(b.n));
   const t='Comune;Provincia;Filiali Banco BPM;Filiali Credit Agricole;Stato\n'+rows.map(c=>[c.n,pn(c.p),c.b,c.c,ST[c.st]].join(';')).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download='sovrapposizioni_basilicata.csv';a.click()};
 const info=L.control({position:'topright'});
 info.onAdd=()=>{const d=L.DomUtil.create('div','pinfo');L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);d.style.display='none';
-  d.addEventListener('click',e=>{if(e.target.closest('.x')){$('selProv').value='';renderTable();showInfo('');map.fitBounds(FULL);return}const a=e.target.closest('a[data-n]');if(a)selectComune(a.dataset.n)});return d};
+  d.addEventListener('click',e=>{if(e.target.closest('.x')){selected=null;renderTable();showDetail();return}
+    const a=e.target.closest('a[data-i]');if(a){const m=mk.get(shown[+a.dataset.i]);if(m){map.setView(m.getLatLng(),Math.max(map.getZoom(),15));m.openPopup()}}});return d};
 info.addTo(map);
-function showInfo(p){const d=info.getContainer();if(!p){d.style.display='none';return}
-  const rows=Object.values(counts).filter(c=>c.p===p&&c.st!=='none'),b=rows.reduce((s,r)=>s+r.b,0),c=rows.reduce((s,r)=>s+r.c,0),ov=rows.filter(r=>r.st==='both').sort((x,y)=>(y.b+y.c)-(x.b+x.c));
-  d.innerHTML=`<button class="x" aria-label="Chiudi">×</button><div class="t">Provincia di ${esc(pn(p))}</div><div><span class=c-bpm>BPM ${b}</span>, <span class=c-ca>CA ${c}</span>, ${rows.length} comuni con filiali</div><div style="margin:8px 0 2px"><b>Comuni con entrambe: ${ov.length}</b></div>${ov.map(r=>`<a data-n="${esc(r.n)}">${esc(r.n)} <span style="color:var(--mute)">(BPM ${r.b}, CA ${r.c})</span></a>`).join('')||'<div style="color:var(--mute)">Nessuna sovrapposizione</div>'}`;
-  d.style.display='block'}
-function selectProvince(p){$('selProv').value=p;renderTable();const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));if(ls.length)map.fitBounds(L.featureGroup(ls).getBounds(),{padding:[20,20]});showInfo(p)}
+let shown=[];
+function showDetail(){const d=info.getContainer();const c=selected&&counts[selected];if(!c){d.style.display='none';shown=[];return}
+  shown=active().filter(b=>b.com===selected).sort((x,y)=>x.b.localeCompare(y.b)||x.nome.localeCompare(y.nome));
+  d.innerHTML=`<button class="x" aria-label="Chiudi">×</button><div class="t">${esc(selected)} (${esc(c.p)})</div><div><span class=c-bpm>BPM ${c.b}</span>, <span class=c-ca>CA ${c.c}</span></div>`+
+    (shown.length?['BPM','CA'].map(k=>{const L=shown.map((b,i)=>[b,i]).filter(x=>x[0].b===k);if(!L.length)return '';
+      return `<div class="bk ${k==='BPM'?'bpm':'ca'}"><div class="bh">${k==='BPM'?'Banco BPM':'Crédit Agricole'} <span>${L.length} ${L.length===1?'filiale':'filiali'}</span></div>`+
+        L.map(([b,i])=>`<a data-i="${i}"><b>${esc(b.nome)}</b><span class=sm>${esc(b.ind)}${b.cap?' - '+esc(b.cap):''}</span><span class=sm>${esc(b.tip)}</span></a>`).join('')+`</div>`}).join(''):'<div style="color:var(--mute);margin-top:8px">Nessuna filiale in questo comune con i filtri attuali.</div>');
+  d.style.display='block';d.scrollTop=0}
+function selectProvince(p){$('selProv').value=p;renderTable();const ls=[];comLayer.eachLayer(l=>l.feature.properties.p===p&&ls.push(l));if(ls.length)map.fitBounds(L.featureGroup(ls).getBounds(),{padding:[20,20]})}
 function focusMap(){if(innerWidth>900)return;const r=$('map').getBoundingClientRect();if(r.top<0||r.top>120)window.scrollTo({top:scrollY+r.top,behavior:'smooth'})}
-function onMapClick(pr){if($('selProv').value!==pr.p)selectProvince(pr.p);else selectComune(pr.n)}
+function onMapClick(pr){selectComune(pr.n)}
 refresh();
 </script>
 </body>

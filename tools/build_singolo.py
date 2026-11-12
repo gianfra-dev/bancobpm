@@ -4,7 +4,7 @@ Ogni pagina regionale e' compressa (gzip) e decompressa nel browser solo quando 
 Logo (ed eventuali font) sono incorporati nel file. Le librerie della mappa (Leaflet) e le tessere OpenStreetMap restano online.
 Uso: python3 build_singolo.py [file_output]      (default: ../filiali-bpm-ca.html)
      Per impostazione predefinita le pagine vengono rigenerate in una cartella temporanea con confini semplificati (~110 m, EPS=0.001)
-     e il file risulta piu' leggero. DATI=<cartella_dati> indica i dati scaricati da fetch.sh; SENZA_SEMPLIFICARE=1 usa le pagine gia' generate."""
+     e il file risulta piu' leggero. DATI=<cartella_dati> indica i dati scaricati da fetch.sh; SENZA_CSV=1 toglie l'esportazione CSV (usare con un nome di file diverso); SENZA_SEMPLIFICARE=1 usa le pagine gia' generate."""
 import os,re,sys,glob,json,base64,zlib,subprocess,tempfile
 HERE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.abspath(os.path.join(HERE,'..'))
 OUT=sys.argv[1] if len(sys.argv)>1 else f'{ROOT}/filiali-bpm-ca.html'
@@ -30,6 +30,10 @@ for p in sorted(glob.glob(f'{SRC}/*/index.html')):
     h=open(p,encoding='utf-8').read()
     if '<a class="back" href="../"' not in h:continue
     h=strip_assets(h,'../')
+    if os.environ.get('SENZA_CSV'):   # variante senza esportazione CSV
+        h,n1=re.subn(r'<button class="act" id="csv"[^>]*>[^<]*</button>','',h)
+        h,n2=re.subn(r"\$\('csv'\)\.onclick=.*?a\.click\(\)\};\n?",'',h,flags=re.S)
+        assert n1==1 and n2==1 and 'csv' not in h.lower().replace('csv.','x'),slug
     h=h.replace('<a class="back" href="../"','<a class="back" href="#" onclick="parent.postMessage(\'home\',\'*\');return false"')
     assert 'onclick="parent.postMessage' in h and '../assets' not in h,slug
     raw+=len(h);blocks.append(f'<script type="text/plain" id="r-{slug}">{gz(h)}</script>');slugs.append(slug)
