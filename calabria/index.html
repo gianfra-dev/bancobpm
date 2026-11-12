@@ -220,7 +220,7 @@ function renderTable(){
   else rows.forEach(c=>h+=row(c));
   document.querySelector('#tbl tbody').innerHTML=h||'<tr><td colspan=5 style="padding:24px 10px;color:var(--mute)">Nessun comune corrisponde ai filtri. Prova a togliere la ricerca o a scegliere "Tutti".</td></tr>';
   const vis=new Set(rows.map(r=>r.n));
-  comLayer.eachLayer(l=>{const n=l.feature.properties.n,c=counts[n];l.setStyle({fillColor:COL[c.st],fillOpacity:vis.has(n)?opOf(c.st):.03})});
+  comLayer.eachLayer(l=>{const n=l.feature.properties.n,c=counts[n];const sel=n===selected;l.setStyle({fillColor:COL[c.st],fillOpacity:sel?.12:vis.has(n)?opOf(c.st):.03,weight:sel?2.6:1.3,color:sel?'#a50f22':'#8791a3'})});
 }
 function row(c){return `<tr class="c${selected===c.n?' sel':''}" data-n="${esc(c.n)}"><td>${esc(c.n)}</td><td>${c.p}</td><td class=n>${c.b||''}</td><td class=n>${c.c||''}</td><td>${c.st==='none'?'-':`<span class="tag ${c.st}">${ST[c.st]}</span>`}</td></tr>`}
 function selectComune(n){selected=n;const l=comByName[n];if(!l)return;map.fitBounds(l.getBounds(),{maxZoom:13,padding:[30,30]});
